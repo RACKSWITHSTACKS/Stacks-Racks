@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>STACKS & RACKS</title>
+<style>
+:root{
+  --green:#39ff88; --green2:#0aff68; --dark:#020806; --panel:#06130e;
+  --line:rgba(57,255,136,.28); --text:#d8ffe8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#010504;color:var(--text);font-family:Arial,Helvetica,sans-serif}
+body{overflow-x:hidden;background:
+ radial-gradient(circle at 50% 20%,rgba(0,255,110,.08),transparent 35%),
+ linear-gradient(#010504,#020806 55%,#000 100%)}
+button{font:inherit}
+.app{min-height:100vh;display:flex;justify-content:center;padding:24px 12px}
+.shell{width:min(1180px,100%);position:relative}
+.title{
+ text-align:center;font-weight:1000;letter-spacing:8px;font-size:clamp(28px,6vw,64px);
+ margin:4px 0 4px;color:#dfffea;text-shadow:0 0 8px var(--green),0 0 28px rgba(57,255,136,.6)
+}
+.subtitle{text-align:center;color:#58d98b;letter-spacing:4px;font-size:11px;margin-bottom:18px}
+.screen{display:none}.screen.active{display:block}
+.panel{
+ background:linear-gradient(145deg,rgba(8,25,17,.96),rgba(2,10,7,.96));
+ border:1px solid var(--line);box-shadow:0 0 30px rgba(0,255,110,.08),inset 0 0 30px rgba(0,255,110,.025);
+ clip-path:polygon(0 14px,14px 0,calc(100% - 14px) 0,100% 14px,100% calc(100% - 14px),calc(100% - 14px) 100%,14px 100%,0 calc(100% - 14px))
+}
+.menu{max-width:620px;margin:30px auto;padding:32px}
+.menu-logo{font-size:clamp(44px,10vw,82px);font-weight:1000;line-height:.85;text-align:center;letter-spacing:5px}
+.menu-logo span{display:block;color:var(--green);text-shadow:0 0 18px var(--green)}
+.menu-note{text-align:center;color:#70b88e;margin:18px 0 26px;letter-spacing:2px}
+.menu-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.stat{border:1px solid var(--line);padding:14px;text-align:center;background:#031009}
+.stat b{display:block;font-size:24px;color:var(--green)}
+.stat small{color:#679a7b;letter-spacing:2px}
+.btn-grid{display:grid;gap:10px}
+.btn{
+ border:1px solid #36ff86;background:linear-gradient(#0b2719,#04140c);color:#caffdd;
+ padding:15px 18px;cursor:pointer;letter-spacing:3px;font-weight:900;
+ box-shadow:0 0 12px rgba(57,255,136,.14),inset 0 0 12px rgba(57,255,136,.04);
+ transition:.15s transform,.15s background,.15s box-shadow
+}
+.btn:hover{transform:translateY(-2px);background:#0b2417;box-shadow:0 0 22px rgba(57,255,136,.28)}
+.btn:active{transform:translateY(1px)}
+.music-link{display:block;text-align:center;text-decoration:none;margin-top:14px;color:#caffdd}
+.main-quit{margin-top:10px;width:100%;opacity:.9}
+.btn.primary{background:linear-gradient(#14c961,#087a3b);color:#001b0c;text-shadow:none}
+.back{margin-top:14px;width:100%}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.hudbox{padding:9px 10px;border:1px solid var(--line);background:#031009;clip-path:polygon(0 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%)}
+.hudbox small{display:block;font-size:9px;color:#619c78;letter-spacing:2px}
+.hudbox b{color:var(--green);font-size:19px;text-shadow:0 0 8px rgba(57,255,136,.5)}
+.game-frame{position:relative;padding:7px;border:1px solid #1eea74;background:#010805;box-shadow:0 0 28px rgba(0,255,100,.13)}
+.game-frame:before,.game-frame:after{content:"";position:absolute;width:65px;height:3px;background:var(--green);box-shadow:0 0 12px var(--green)}
+.game-frame:before{left:10px;top:-2px}.game-frame:after{right:10px;bottom:-2px}
+canvas{display:block;width:100%;height:auto;background:#010704;touch-action:none}
+.controls{display:flex;gap:10px;margin-top:10px}.controls .btn{flex:1}
+.tip{text-align:center;color:#4f8e69;font-size:11px;letter-spacing:2px;margin:10px 0}
+.modal{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,5,3,.68);backdrop-filter:blur(4px)}
+.modal.show{display:flex}
+.modal-card{width:min(440px,90%);padding:28px;text-align:center}
+.modal-card h2{font-size:36px;margin:0 0 6px;color:var(--green);text-shadow:0 0 15px rgba(57,255,136,.55)}
+.modal-card p{color:#8fc4a1}
+.reward{font-size:12px;color:#62ff9c;margin:10px 0 20px;letter-spacing:2px}
+.shop{padding:24px}.shop h2,.settings h2{margin-top:0;color:var(--green);letter-spacing:4px}
+.item-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.item{border:1px solid var(--line);background:#031009;padding:16px;text-align:center}
+.item .preview{height:72px;display:grid;place-items:center;font-size:38px}
+.item h3{margin:6px 0;color:#caffdd}.item small{color:#639879}
+.item .btn{width:100%;margin-top:12px;padding:10px;font-size:11px}
+.settings{padding:24px;max-width:650px;margin:auto}
+.setting{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(57,255,136,.12);padding:15px 0}
+.setting input{accent-color:var(--green)}
+.toast{position:fixed;left:50%;bottom:25px;transform:translateX(-50%) translateY(20px);opacity:0;padding:12px 18px;border:1px solid var(--green);background:#03130b;color:#bfffd3;box-shadow:0 0 20px rgba(57,255,136,.2);transition:.2s;pointer-events:none;z-index:20}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:700px){
+ .app{padding:12px 8px}.hud{grid-template-columns:1fr 1fr}.item-grid{grid-template-columns:1fr}
+ .menu{padding:22px}.title{letter-spacing:4px}.controls{flex-direction:column}
+}
+</style>
+
+<style id="mobileSupport">
+html, body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+}
+body {
+  touch-action: manipulation;
+}
+canvas {
+  max-width: 100%;
+  height: auto;
+  touch-action: none;
+}
+#gameScreen {
+  width: 100%;
+  min-height: 100dvh;
+  box-sizing: border-box;
+}
+@media (max-width: 700px) {
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  #gameScreen {
+    padding: 8px;
+  }
+  #gameScreen canvas {
+    width: 100%;
+    max-height: 68dvh;
+    object-fit: contain;
+  }
+  button {
+    min-height: 44px;
+    min-width: 44px;
+    font-size: 14px;
+  }
+  #fullscreenBtn {
+    font-size: 13px;
+  }
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  #gameScreen canvas {
+    max-height: 82dvh;
+  }
+}
+.fullscreen-fallback {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 9999;
+}
+</style>
+
+
+
+<style id="finalPolishCSS">
+#profileBtn,#dailyBtn,#achievementsBtn{margin-top:10px}.utility-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}.utility-grid .btn{min-width:0}.progress-hud{display:none;position:absolute;top:88px;left:50%;transform:translateX(-50%);z-index:5;width:min(620px,86vw);padding:8px 12px;border:1px solid rgba(80,255,160,.35);background:rgba(0,10,7,.78);backdrop-filter:blur(8px);font-size:12px;text-align:center;color:#aaffcf}.progress-hud.show{display:block}.progress-track{height:6px;background:#07150e;border:1px solid #1c5a3b;margin-top:5px}.progress-fill{height:100%;width:0%;background:#57ff88;transition:width .2s}.overlay-card{max-height:78vh;overflow:auto}.achievement{padding:10px;margin:8px 0;border:1px solid rgba(80,255,160,.22);background:rgba(0,20,12,.5);display:flex;justify-content:space-between;gap:10px}.achievement.locked{opacity:.45}.daily-box{padding:14px;border:1px solid rgba(255,205,65,.3);margin:10px 0;background:rgba(30,20,0,.35)}.daily-reward{color:#ffdc69}.stat-table{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}.tip-chip{font-size:11px;color:#86b99c;margin-top:8px}.flash-hit{position:fixed;inset:0;pointer-events:none;background:rgba(255,70,70,.16);opacity:0;z-index:50}.flash-hit.on{animation:hitflash .18s ease-out}@keyframes hitflash{0%{opacity:1}100%{opacity:0}}.score-pop{position:fixed;pointer-events:none;z-index:51;font-weight:900;color:#6dff9e;text-shadow:0 0 12px #1cff72;animation:scorepop .7s ease-out forwards}@keyframes scorepop{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-45px);opacity:0}}@media(max-width:700px){.utility-grid{grid-template-columns:1fr}.progress-hud{top:74px;width:92vw}.hud{gap:5px}.hudbox{padding:6px 7px}.hudbox small{font-size:8px}.hudbox b{font-size:13px}.controls{flex-wrap:wrap}.controls .btn{flex:1;min-width:30%}.modal-card{width:92vw}.panel{max-width:94vw}}
+</style>
+
+<style id="volumeControlsCSS">
+.volume-setting{padding:15px 0 17px;border-bottom:1px solid rgba(255,255,255,.08)}
+.volume-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:#bfffd7;font-size:13px;letter-spacing:2px}
+.volume-head b{color:#57ff9a;min-width:48px;text-align:right}
+.volume-control{position:relative;width:100%;height:42px;display:block;user-select:none;touch-action:none;cursor:pointer;outline:none}
+.volume-track{position:absolute;left:0;right:0;top:50%;height:8px;transform:translateY(-50%);border:1px solid rgba(70,255,150,.28);border-radius:8px;background:rgba(60,110,80,.35);box-shadow:0 0 12px rgba(30,255,120,.12);pointer-events:none}
+.volume-fill{position:absolute;left:0;top:0;height:100%;width:0%;border-radius:8px;background:#21e878;box-shadow:0 0 10px rgba(30,255,120,.25);pointer-events:none}
+.volume-thumb{position:absolute;top:50%;left:0;width:23px;height:23px;transform:translate(-50%,-50%);border-radius:50%;background:#baffd0;border:3px solid #20ed78;box-shadow:0 0 14px rgba(30,255,120,.7);pointer-events:none;z-index:3}
+.volume-control:focus .volume-thumb,.volume-control:focus-within .volume-thumb{box-shadow:0 0 0 2px #57ff9a,0 0 18px rgba(30,255,120,.75)}
+.volume-control input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+</style>
+
+<style id="desktopFullscreenFix">
+/* Desktop fullscreen: keep the entire game HUD, canvas, controls, and overlays
+   inside the actual viewport instead of letting the document become taller
+   than the screen. */
+html:fullscreen, html:-webkit-full-screen {
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#010504;
+}
+html:fullscreen body, html:-webkit-full-screen body {
+  width:100vw;
+  height:100vh;
+  min-height:0;
+  overflow:hidden;
+}
+html:fullscreen .app, html:-webkit-full-screen .app {
+  width:100vw;
+  height:100vh;
+  min-height:0;
+  padding:10px;
+  overflow:hidden;
+}
+html:fullscreen .shell, html:-webkit-full-screen .shell {
+  width:100%;
+  height:100%;
+  max-width:none;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+html:fullscreen .title,
+html:fullscreen .subtitle,
+html:-webkit-full-screen .title,
+html:-webkit-full-screen .subtitle {
+  display:none;
+}
+html:fullscreen #gameScreen.active,
+html:-webkit-full-screen #gameScreen.active {
+  display:flex;
+  flex:1 1 auto;
+  min-height:0;
+  width:100%;
+  flex-direction:column;
+  overflow:hidden;
+}
+html:fullscreen #gameScreen .hud,
+html:-webkit-full-screen #gameScreen .hud {
+  flex:0 0 auto;
+  margin-bottom:6px;
+}
+html:fullscreen #gameScreen .game-frame,
+html:-webkit-full-screen #gameScreen .game-frame {
+  flex:1 1 auto;
+  min-height:0;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  padding:4px;
+}
+html:fullscreen #gameScreen .game-frame canvas,
+html:-webkit-full-screen #gameScreen .game-frame canvas {
+  width:auto;
+  height:auto;
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+}
+html:fullscreen #gameScreen .controls,
+html:-webkit-full-screen #gameScreen .controls {
+  flex:0 0 auto;
+  margin-top:6px;
+}
+html:fullscreen #gameScreen .tip,
+html:-webkit-full-screen #gameScreen .tip {
+  flex:0 0 auto;
+  margin:5px 0 0;
+}
+html:fullscreen #gameScreen .modal,
+html:-webkit-full-screen #gameScreen .modal {
+  position:absolute;
+}
+html:fullscreen #fullscreenBtn,
+html:-webkit-full-screen #fullscreenBtn {
+  right:12px;
+  bottom:12px;
+  opacity:.72;
+  font-size:12px;
+  padding:9px 12px;
+}
+@media (max-height:700px) and (min-width:701px) {
+  html:fullscreen .app, html:-webkit-full-screen .app { padding:5px; }
+  html:fullscreen #gameScreen .hud, html:-webkit-full-screen #gameScreen .hud { margin-bottom:3px; }
+  html:fullscreen #gameScreen .hudbox { padding:5px 7px; }
+  html:fullscreen #gameScreen .hudbox small { font-size:8px; }
+  html:fullscreen #gameScreen .hudbox b { font-size:15px; }
+  html:fullscreen #gameScreen .controls, html:-webkit-full-screen #gameScreen .controls { margin-top:3px; }
+  html:fullscreen #gameScreen .controls .btn, html:-webkit-full-screen #gameScreen .controls .btn { padding:9px 12px; }
+  html:fullscreen #gameScreen .tip, html:-webkit-full-screen #gameScreen .tip { margin-top:2px; }
+}
+</style>
+</head>
+<body>
+<div class="app"><div class="shell">
+  <div class="title">STACKS & RACKS</div>
+  <div class="subtitle">NEON CASH // FLIGHT SYSTEM v1.0</div>
+
+  <section id="menuScreen" class="screen active">
+    <div class="panel menu">
+      <div class="menu-logo">STACKS<span>&amp; RACKS</span></div>
+      <div class="menu-note">FLY THE CASH. BEAT THE RACKS. BUILD THE STACK.</div>
+      <div class="menu-stats">
+        <div class="stat"><small>HIGH SCORE</small><b id="menuHigh">0</b></div>
+        <div class="stat"><small>COINS</small><b id="menuCoins">0</b></div>
+      </div>
+      <div class="btn-grid">
+        <button class="btn primary" id="playBtn">▶ PLAY</button>
+        <button class="btn" id="garageBtn">▣ COIN SHOP</button>
+        <button class="btn" id="worldsBtn">🌎 WORLD VAULT</button>
+        <button class="btn" id="settingsBtn">⚙ SETTINGS</button>
+      </div>
+      <a class="btn music-link" href="https://soundcloud.com/rackswithstacks" target="_blank" rel="noopener noreferrer">🎵 RACKSWITHSTACK'S MUSIC</a>
+      <button class="btn main-quit" id="mainQuitBtn">⏻ QUIT / EXIT</button>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="screen">
+    <div class="hud">
+      <div class="hudbox"><small>STACKS SCORE</small><b id="score">0</b></div>
+      <div class="hudbox"><small>HIGH SCORE</small><b id="highScore">0</b></div>
+      <div class="hudbox"><small>COMBO</small><b id="combo">x1</b></div>
+      <div class="hudbox"><small>COINS</small><b id="coins">0</b></div>
+      <div class="hudbox hearts-box"><small>FLYING MONEY LIVES</small><b id="playerHearts">♥ ♥ ♥</b></div>
+    </div>
+    <div id="bossHudSlot"><div id="bossHud" class="boss-hud">
+  <div><div class="boss-title" id="bossName">WORLD BOSS</div><div class="boss-sub" id="bossSub">MONEY DAMAGE REQUIRED</div><div class="boss-bar"><div class="boss-fill" id="bossFill"></div></div></div>
+  <div class="boss-money" id="bossMoney">$0 / $0</div>
+</div>
+</div>
+    <div class="game-frame">
+      <canvas id="gameCanvas" width="1100" height="620"></canvas>
+      <div id="deathModal" class="modal">
+        <div class="panel modal-card">
+          <h2>STACK CRASH</h2>
+          <p id="deathText">Your run has ended.</p>
+          <div class="reward" id="rewardText"></div>
+          <button class="btn primary" id="retryBtn">↻ RUN IT BACK</button>
+          <button class="btn back" id="menuBtn">⌂ MAIN MENU</button>
+        </div>
+      </div>
+      <div id="pauseOverlay" class="modal">
+        <div class="panel modal-card">
+          <h2>PAUSED</h2>
+          <p>Your run is safely paused.</p>
+          <button class="btn primary" id="resumeGameBtn">▶ RESUME</button>
+          <button class="btn" id="pauseSettingsBtn">⚙ SETTINGS</button>
+          <button class="btn back" id="pauseMenuBtn">⌂ SAVE & MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="flapBtn">▲ FLAP</button>
+      <button class="btn" id="moneyShotBtn">💵 SHOOT MONEY</button>
+      <button class="btn" id="pauseBtn">Ⅱ PAUSE</button>
+      <button class="btn" id="quitBtn">EXIT</button>
+    </div>
+    <div class="tip">SPACE / ↑ / CLICK / TAP = FLAP</div>
+  </section>
+
+  <section id="garageScreen" class="screen">
+    <div class="panel shop">
+      <h2>▣ GARAGE</h2>
+      <div class="item-grid" id="garageGrid"></div>
+      <button class="btn back" id="garageBack">← BACK</button>
+    </div>
+  </section>
+
+
+  <section id="worldsScreen" class="screen">
+    <div class="panel shop">
+      <h2>🌎 WORLD VAULT</h2>
+      <p style="color:#70b88e">200 money-powered worlds. Buy worlds with STACK COINS and unlock new visual zones.</p>
+      <div class="item-grid" id="worldGrid"></div>
+      <button class="btn back" id="worldsBack">← BACK</button>
+    </div>
+  </section>
+  <section id="settingsScreen" class="screen">
+    <div class="panel settings">
+      <h2>⚙ SETTINGS</h2>
+      <div class="setting setting-toggle"><span>MUSIC</span><input id="musicToggle" type="checkbox" checked></div>
+      <div class="volume-setting">
+        <div class="volume-head"><span>🎵 MUSIC VOLUME</span><b id="musicVolumeValue">32%</b></div>
+        <div class="volume-control" id="musicVolumeControl">
+          <div class="volume-track"><div class="volume-fill"></div></div><div class="volume-thumb"></div>
+          <input id="musicVolume" type="range" min="0" max="100" value="32" aria-label="Music volume">
+        </div>
+      </div>
+      <div class="setting setting-toggle"><span>SOUND EFFECTS</span><input id="sfxToggle" type="checkbox" checked></div>
+      <div class="volume-setting">
+        <div class="volume-head"><span>🔊 SFX VOLUME</span><b id="sfxVolumeValue">100%</b></div>
+        <div class="volume-control" id="sfxVolumeControl">
+          <div class="volume-track"><div class="volume-fill"></div></div><div class="volume-thumb"></div>
+          <input id="sfxVolume" type="range" min="0" max="100" value="100" aria-label="Sound effects volume">
+        </div>
+      </div>
+      <div class="setting"><span>SCREEN SHAKE</span><input id="shakeToggle" type="checkbox" checked></div>
+      <div class="setting"><span>HIGH CONTRAST GRID</span><input id="gridToggle" type="checkbox" checked></div>
+      <button class="btn back" id="settingsBack">← BACK</button>
+    </div>
+  </section>
+</div></div>
+<div class="toast" id="toast"></div>
+<div id="finalProgressHud" class="progress-hud"><div id="progressLabel">WORLD 1 • RACK PROGRESS</div><div class="progress-track"><div id="progressFill" class="progress-fill"></div></div></div><div id="flashHit" class="flash-hit"></div>
+
+
+<script>
+const canvas=document.getElementById("gameCanvas"),ctx=canvas.getContext("2d");
+const W=canvas.width,H=canvas.height;
+const $=id=>document.getElementById(id);
+
+let highScore=Number(localStorage.getItem("sr_high")||0);
+let coins=Number(localStorage.getItem("sr_coins")||0);
+let owned=JSON.parse(localStorage.getItem("sr_owned")||'["basic"]');
+let selected=localStorage.getItem("sr_selected")||"basic";
+let ownedWorlds=JSON.parse(localStorage.getItem("sr_worlds")||'[1]');
+let selectedWorld=Number(localStorage.getItem("sr_world")||1);
+let passedRacks=0;
+let coinStreak=0;
+
+const music=new Audio("./stacks-music.mp3"); music.loop=true; music.volume=Number(localStorage.getItem("sr_musicVol")||.32);
+let sfxVolume=Number(localStorage.getItem("sr_sfxVol")||1);
+let audioCtx=null, running=false, paused=false, gameOver=false, score=0, combo=1, speed=4.2;
+let last=0, spawnTimer=0, coinTimer=0, shake=0, nearMiss=0, level=1;
+let obstacles=[], pickups=[], particles=[], stars=[];
+for(let i=0;i<90;i++) stars.push({x:Math.random()*W,y:Math.random()*H*.68,s:Math.random()*2+.4,v:Math.random()*.4+.1});
+
+const player={x:165,y:H/2,w:78,h:52,vy:0,rot:0,wing:0};
+const skins={
+ basic:{name:"BASIC BILL",price:0,icon:"💵",desc:"Classic flight unit."},
+ gold:{name:"GOLD WINGS",price:500,icon:"💵",desc:"Premium wing hardware."},
+ black:{name:"BLACKOUT",price:1200,icon:"💴",desc:"Stealth cash configuration."},
+ diamond:{name:"DIAMOND BILL",price:2500,icon:"💎",desc:"Ultra-rare stack core."},
+ cyber:{name:"CYBER TRAIL",price:5000,icon:"⚡",desc:"Leaves a digital cash trail."}
+};
+
+function save(){
+ localStorage.setItem("sr_high",highScore);
+ localStorage.setItem("sr_coins",coins);
+ localStorage.setItem("sr_owned",JSON.stringify(owned));
+ localStorage.setItem("sr_selected",selected);
+ localStorage.setItem("sr_worlds",JSON.stringify(ownedWorlds));
+ localStorage.setItem("sr_world",selectedWorld);
+}
+function showScreen(id){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));$(id).classList.add("active")}
+function updateMenu(){ $("menuHigh").textContent=Math.floor(highScore); $("menuCoins").textContent=Math.floor(coins); $("highScore").textContent=Math.floor(highScore); $("coins").textContent=Math.floor(coins)}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),1700)}
+window.SRAudio={
+ enabled:()=>!!$("sfxToggle")?.checked,
+ volume:()=>Math.max(0,Math.min(1,Number(sfxVolume)||0)),
+ play:(freq=440,dur=.07,type="square")=>{if(!window.SRAudio.enabled()||window.SRAudio.volume()<=0)return;try{audioCtx??=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume().catch(()=>{});let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=.035*window.SRAudio.volume();o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);o.stop(audioCtx.currentTime+dur)}catch(e){}}
+};
+function beep(freq=440,dur=.07,type="square"){window.SRAudio.play(freq,dur,type)}
+
+function startGame(){
+ score=0;combo=1;speed=4.2;level=1;spawnTimer=0;coinTimer=0;nearMiss=0;obstacles=[];pickups=[];particles=[];passedRacks=0;coinStreak=0;
+ player.y=H/2;player.vy=0;player.rot=0;running=true;paused=false;gameOver=false;last=0;$("deathModal").classList.remove("show");
+ showScreen("gameScreen"); updateHUD(); beep(650,.08);
+ if($("musicToggle").checked){music.currentTime=0;music.play().catch(()=>{})}
+ requestAnimationFrame(loop);
+}
+function flap(){if(!running||paused||gameOver)return;player.vy=-8.3;player.wing=1;beep(620,.045,"triangle")}
+function endGame(){
+ if(gameOver)return;gameOver=true;running=false;music.pause();beep(90,.22,"sawtooth");
+ if(score>highScore){highScore=score;toast("NEW HIGH SCORE");beep(880,.18)}
+ const earned=Math.floor(score/50);coins+=earned;save();updateMenu();
+ $("deathText").textContent=`FINAL SCORE: ${Math.floor(score)}  •  LEVEL ${level}`;
+ $("rewardText").textContent=`+${earned} COINS // ${combo}X LAST COMBO`;
+ $("deathModal").classList.add("show");
+}
+function updateHUD(){$("score").textContent=Math.floor(score);$("highScore").textContent=Math.floor(highScore);$("combo").textContent="x"+combo;$("coins").textContent=Math.floor(coins)}
+
+function createRack(){
+ const gap=Math.max(158,205-level*3.5), top=78+Math.random()*(H-gap-156), width=72;
+ obstacles.push({x:W+30,w:width,top,bottom:top+gap,passed:false,phase:Math.random()*6});
+}
+function createCoin(){
+ const x=W+30;
+ // Keep coins in playable space and away from the solid parts of the nearest rack.
+ let y=100+Math.random()*(H-200);
+ const rack=obstacles.find(o=>o.x>x-120&&o.x<x+180);
+ if(rack){
+   const safeTop=rack.top+30, safeBottom=rack.bottom-30;
+   if(safeBottom>safeTop) y=safeTop+Math.random()*(safeBottom-safeTop);
+ }
+ pickups.push({x,y,r:15,spin:Math.random()*Math.PI*2,type:Math.random()<.10?"boost":"coin"});
+}
+function hit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+function playerBox(){return{x:player.x+10,y:player.y+7,w:player.w-20,h:player.h-14}}
+
+function loop(t){
+ if(!running)return;
+ if(!last)last=t;let dt=Math.min(2,(t-last)/16.67);last=t;
+ if(!paused)update(dt);
+ draw(t);
+ requestAnimationFrame(loop);
+}
+function update(dt){
+ level=1+Math.floor(score/400)+Math.floor((selectedWorld-1)/12);
+ const targetSpeed=Math.min(10.5,4.2+level*.22);
+ speed += (targetSpeed-speed)*Math.min(1,.045*dt);
+ player.vy += .40*dt;
+ player.y += player.vy*dt;
+ const targetRot=Math.max(-.42,Math.min(.62,player.vy*.042));
+ player.rot += (targetRot-player.rot)*Math.min(1,.16*dt);
+ player.wing*=Math.pow(.88,dt);
+ spawnTimer+=dt;coinTimer+=dt;
+ if(spawnTimer>Math.max(48,82-level*2)){createRack();spawnTimer=0}
+ const worldCoinBoost = Math.min(28, Math.floor((selectedWorld - 1) / 8));
+if(coinTimer > Math.max(24, 65 - level - worldCoinBoost)){
+  createCoin();
+  coinTimer=0;
+}
+ obstacles.forEach(o=>{o.x-=speed*dt;o.phase+=.04*dt});
+ pickups.forEach(c=>{
+  c.x-=speed*dt;
+  c.spin+=.12*dt;
+});
+ obstacles=obstacles.filter(o=>o.x+o.w>-30);pickups=pickups.filter(c=>c.x>-30);
+ const p=playerBox();
+ if(player.y<0||player.y+player.h>H) return endGame();
+ for(const o of obstacles){
+   if(p.x<o.x+o.w&&p.x+p.w>o.x&&(p.y<o.top||p.y+p.h>o.bottom))return endGame();
+   if(!o.passed&&o.x+o.w<p.x){
+  o.passed=true;
+  passedRacks++;
+  const rackScore = 10 + Math.min(20, Math.floor(level / 3));
+  score += rackScore;
+  beep(520,.025,"square");
+  popScore("+"+rackScore, player.x+player.w, player.y);
+  if(passedRacks % 10 === 0){
+    score += 50 + Math.min(200, level * 5);
+    toast("RACK STREAK +" + (50 + Math.min(200, level * 5)));
+    beep(980,.08,"triangle");
+  }
+}
+   if(o.passed&&o.x+o.w>p.x-12&&o.x<p.x+p.w+12) nearMiss=.3;
+ }
+ nearMiss=Math.max(0,nearMiss-dt*.025);
+ for(let i=pickups.length-1;i>=0;i--){
+   const c=pickups[i],dx=c.x-(player.x+player.w/2),dy=c.y-(player.y+player.h/2);
+   if(Math.hypot(dx,dy)<34){
+     if(c.type==="boost"){
+  score += 100;
+  coinStreak += 3;
+  if(coinStreak >= 8){
+    combo = Math.min(10, combo + 1);
+    coinStreak = 0;
+    toast("COIN COMBO x"+combo);
+  }
+  toast("CASH BOOST +100");
+  beep(900,.12);
+} else {
+  coins++;
+  if(typeof SRFinal!=='undefined' && SRFinal.stats) SRFinal.stats.coinsCollected=(SRFinal.stats.coinsCollected||0)+1;
+  score += 25;
+  coinStreak++;
+  if(coinStreak >= 8){
+    combo = Math.min(10, combo + 1);
+    coinStreak = 0;
+    toast("COIN COMBO x"+combo);
+    beep(840,.09,"triangle");
+  } else beep(760,.06);
+}
+burst(c.x,c.y, c.type==="boost"?18:10);pickups.splice(i,1);updateMenu();
+   }
+ }
+ 
+ if(Math.random()<.22)burst(player.x,player.y+player.h/2,1);
+ updateHUD();
+}
+function burst(x,y,n){
+ for(let i=0;i<n;i++)particles.push({x,y,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4-1,life:1,s:Math.random()*3+1});
+}
+
+function draw(t){
+ ctx.save();
+ if($("shakeToggle").checked&&nearMiss>0)ctx.translate((Math.random()-.5)*3,(Math.random()-.5)*3);
+ const palettes=[
+ ["#010a06","#03150c","#020806"],["#120b01","#251706","#090501"],["#071016","#0b1d28","#020609"],["#120d17","#21112b","#050308"],
+ ["#020f0b","#05251a","#010604"],["#071010","#102525","#020707"],["#110c06","#21190d","#050301"],["#080514","#160d25","#030108"]
+];
+const pal=palettes[(selectedWorld-1)%palettes.length];
+const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,pal[0]);g.addColorStop(.65,pal[1]);g.addColorStop(1,pal[2]);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ // stars
+ ctx.fillStyle="#77ffad";stars.forEach(s=>{s.x-=s.v;if(s.x<0)s.x=W;ctx.globalAlpha=.2+s.s*.15;ctx.fillRect(s.x,s.y,s.s,s.s)});ctx.globalAlpha=1;
+ // cyber grid
+ const gridOn=$("gridToggle").checked;const worldGlow=["57,255,136","255,205,65","90,220,255","210,125,255","40,255,175","175,235,255","255,145,70","190,120,255"][(selectedWorld-1)%8];
+ ctx.strokeStyle=gridOn?`rgba(${worldGlow},.16)`:`rgba(${worldGlow},.05)`;ctx.lineWidth=1;
+ for(let y=H*.68;y<H;y+=28){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ const off=(t*.08)%55;for(let x=-W;x<W*2;x+=55){ctx.beginPath();ctx.moveTo(x+off,H*.68);ctx.lineTo(W/2+(x-W/2)*.25,H);ctx.stroke()}
+ ctx.shadowBlur=18;ctx.shadowColor=`rgb(${worldGlow})`;ctx.strokeStyle=`rgba(${worldGlow},.45)`;ctx.beginPath();ctx.moveTo(0,H*.68);ctx.lineTo(W,H*.68);ctx.stroke();ctx.shadowBlur=0;
+ // distant city
+ for(let x=0;x<W;x+=34){let h=30+((x*17)%75);ctx.fillStyle="rgba(4,29,18,.8)";ctx.fillRect(x,H*.68-h,28,h)}
+ // Draw the moon/planet first so obstacles and pickups render in front of it.
+ drawPlanet(t);
+ obstacles.forEach(drawRack);pickups.forEach(drawPickup);drawPlayer(t);drawParticles();
+ ctx.restore();
+}
+function drawPlanet(t){
+ const x=W-145+Math.sin(t*.00018)*8,y=105+Math.sin(t*.00023)*5,r=62;
+ const grad=ctx.createRadialGradient(x-18,y-20,4,x,y,r);grad.addColorStop(0,"#8affb6");grad.addColorStop(.3,"#13733d");grad.addColorStop(1,"#03130a");
+ ctx.fillStyle=grad;ctx.shadowColor="#39ff88";ctx.shadowBlur=25;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+ ctx.strokeStyle="rgba(57,255,136,.45)";ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x,y,r+13,18,-.15,0,Math.PI*2);ctx.stroke();
+ ctx.fillStyle="rgba(180,255,210,.18)";ctx.font="bold 28px Arial";ctx.fillText("$",x-9,y+10);
+}
+function drawRack(o){
+ ctx.save();ctx.translate(o.x,0);const pulse=Math.sin(o.phase)*.15;
+ function block(y,h){
+   ctx.fillStyle="#06110b";ctx.strokeStyle="#39ff88";ctx.lineWidth=3;ctx.shadowColor="#39ff88";ctx.shadowBlur=13;
+   ctx.fillRect(0,y,o.w,h);ctx.strokeRect(2,y+2,o.w-4,h-4);ctx.shadowBlur=0;
+   ctx.strokeStyle=`rgba(57,255,136,${.22+pulse})`;ctx.lineWidth=2;
+   for(let yy=y+15;yy<y+h-8;yy+=18){ctx.beginPath();ctx.moveTo(10,yy);ctx.lineTo(o.w-10,yy);ctx.stroke()}
+   ctx.fillStyle="#39ff88";ctx.font="bold 27px Arial";ctx.fillText("$",o.w/2-8,y+h/2+9);
+ }
+ block(0,o.top);block(o.bottom,H-o.bottom);
+ ctx.fillStyle="#b7ffd0";ctx.fillRect(-7,o.top-4,o.w+14,4);ctx.fillRect(-7,o.bottom,o.w+14,4);
+ ctx.restore();
+}
+function drawPickup(c){
+ ctx.save();
+ ctx.translate(c.x,c.y);
+ const bob=Math.sin(c.spin)*2.5;
+ ctx.translate(0,bob);
+ ctx.rotate(Math.sin(c.spin*.7)*.12);
+ const pulse=1+Math.sin(c.spin*1.4)*.06;
+ ctx.scale(pulse,pulse);
+ ctx.shadowColor=c.type==="boost"?"#ffffff":"#39ff88";
+ ctx.shadowBlur=c.type==="boost"?22:16;
+ ctx.fillStyle=c.type==="boost"?"#eafff1":"#37d879";
+ ctx.strokeStyle="#063b20";ctx.lineWidth=3;
+ ctx.beginPath();ctx.arc(0,0,c.r,0,Math.PI*2);ctx.fill();ctx.stroke();
+ ctx.shadowBlur=0;
+ ctx.fillStyle="#032010";ctx.font="bold 17px Arial";ctx.textAlign="center";
+ ctx.fillText(c.type==="boost"?"$×":"$",0,6);
+ ctx.restore();
+}
+function drawPlayer(t){
+ ctx.save();ctx.translate(player.x+player.w/2,player.y+player.h/2);ctx.rotate(player.rot);
+ const wing=Math.sin(t*.012)*.12;
+ drawWing(-28,-8,-1,wing);drawWing(28,-8,1,-wing);
+ // natural money: deliberately no neon glow
+ const grd=ctx.createLinearGradient(-38,-25,38,25);grd.addColorStop(0,"#b7dcae");grd.addColorStop(.45,"#4d9b55");grd.addColorStop(1,"#285d34");
+ ctx.fillStyle=grd;ctx.strokeStyle="#183d21";ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(-39,-24,78,48,7);ctx.fill();ctx.stroke();
+ ctx.fillStyle="rgba(255,255,255,.3)";ctx.fillRect(-32,-18,64,4);
+ ctx.strokeStyle="rgba(210,255,215,.55)";ctx.lineWidth=1;ctx.strokeRect(-31,-14,62,28);
+ ctx.fillStyle="#d9f5d5";ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();ctx.fillStyle="#28633a";ctx.font="bold 16px Arial";ctx.textAlign="center";ctx.fillText("$",0,6);
+ ctx.fillStyle="#d9f5d5";ctx.font="bold 10px Arial";ctx.fillText("$",28,-9);ctx.fillText("$",-28,16);
+ ctx.restore();
+}
+function drawWing(x,y,side,tilt){
+ ctx.save();ctx.translate(x,y);ctx.rotate(side*.3+tilt);ctx.fillStyle="#d5f1d5";ctx.strokeStyle="#294f32";ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(side*25,-20,side*40,-14,side*47,2);ctx.bezierCurveTo(side*34,0,side*25,12,side*12,19);ctx.closePath();ctx.fill();ctx.stroke();
+ for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(side*(8+i*7),2+i*2);ctx.quadraticCurveTo(side*(20+i*7),-7,side*(31+i*5),5+i*3);ctx.stroke()}
+ ctx.restore();
+}
+function drawParticles(){
+ for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.life-=.025;if(p.life<=0){particles.splice(i,1);continue}ctx.globalAlpha=p.life;ctx.fillStyle="#39ff88";ctx.fillRect(p.x,p.y,p.s,p.s)}
+ ctx.globalAlpha=1;
+}
+
+function renderGarage(){
+ $("garageGrid").innerHTML=Object.entries(skins).map(([id,s])=>{
+  const have=owned.includes(id),sel=selected===id;
+  return `<div class="item"><div class="preview">${s.icon}</div><h3>${s.name}</h3><small>${s.desc}</small><button class="btn ${sel?"primary":""}" data-skin="${id}">${sel?"EQUIPPED":have?"EQUIP":s.price.toLocaleString()+" COINS"}</button></div>`
+ }).join("");
+ document.querySelectorAll("[data-skin]").forEach(b=>b.onclick=()=>{
+  const id=b.dataset.skin,s=skins[id];
+  if(owned.includes(id)){selected=id;save();renderGarage();toast(s.name+" EQUIPPED");}
+  else if(coins>=s.price){coins-=s.price;owned.push(id);selected=id;save();updateMenu();renderGarage();toast("UNLOCKED: "+s.name);beep(900,.12)}
+  else toast("NOT ENOUGH COINS");
+ });
+}
+
+const worldNames=[
+ "Cash Coast","Mint Valley","Gold District","Dollar Dunes","Vault City","Money Mountain","Coin Canyon","Greenback Grove",
+ "Bank Boulevard","Billionaire Bay","Stack City","Profit Plains","Payout Port","Treasure Terminal","Royal Reserve","Crypto Creek",
+ "Cashflow Canyon","Fortune Fields","Golden Grid","Money Metro"
+];
+const worldThemes=["mint","gold","vault","dollar","emerald","platinum","copper","diamond"];
+
+function worldName(id){
+ const base=worldNames[(id-1)%worldNames.length];
+ return base+" "+(Math.floor((id-1)/worldNames.length)+1);
+}
+function worldCost(id){
+ if(id===1)return 0;
+ return Math.floor(250 + Math.pow(id,1.55)*18);
+}
+function worldDescription(id){
+ const themes=["green cash","gold reserve","vault steel","silver coins","emerald stacks","platinum bills","copper cash","diamond money"];
+ return themes[(id-1)%themes.length]+" zone // WORLD "+id;
+}
+function renderWorlds(){
+ $("worldGrid").innerHTML=Array.from({length:200},(_,i)=>{
+   const id=i+1,have=ownedWorlds.includes(id),sel=selectedWorld===id,cost=worldCost(id);
+   return `<div class="item"><div class="preview">🌎</div><h3>${worldName(id)}</h3><small>${worldDescription(id)}</small>
+   <button class="btn ${sel?"primary":""}" data-world="${id}">${sel?"ACTIVE":have?"ENTER":cost.toLocaleString()+" COINS"}</button></div>`;
+ }).join("");
+ document.querySelectorAll("[data-world]").forEach(b=>b.onclick=()=>{
+   const id=Number(b.dataset.world),cost=worldCost(id);
+   if(ownedWorlds.includes(id)){selectedWorld=id;save();renderWorlds();toast(worldName(id)+" ACTIVE");}
+   else if(coins>=cost){coins-=cost;ownedWorlds.push(id);selectedWorld=id;save();updateMenu();renderWorlds();toast("WORLD UNLOCKED: "+worldName(id));beep(980,.13)}
+   else toast("NOT ENOUGH COINS");
+ });
+}
+
+$("playBtn").onclick=startGame;
+$("retryBtn").onclick=startGame;
+$("garageBtn").onclick=()=>{renderGarage();showScreen("garageScreen")};
+$("garageBack").onclick=()=>{updateMenu();showScreen("menuScreen")};
+$("worldsBtn").onclick=()=>{renderWorlds();showScreen("worldsScreen")};
+$("worldsBack").onclick=()=>{updateMenu();showScreen("menuScreen")};
+$("settingsBtn").onclick=()=>showScreen("settingsScreen");
+$("settingsBack").onclick=()=>showScreen("menuScreen");
+$("menuBtn").onclick=()=>{music.pause();updateMenu();showScreen("menuScreen")};
+$("quitBtn").onclick=()=>{try{if(typeof window.saveRun==="function")window.saveRun();}catch(e){} running=false;paused=false;music.pause();updateMenu();showScreen("menuScreen")};
+$("mainQuitBtn").onclick=()=>{
+  // Persist the current run and all permanent progress before attempting to close.
+  try{saveRun();save();localStorage.setItem("sr_quitAt",String(Date.now()));}catch(e){}
+  running=false;paused=false;music.pause();
+  try{window.open("","_self");window.close();}catch(e){try{window.close()}catch(_){}}
+};
+if($("pauseBtn")){
+  $("pauseBtn").onclick=()=>{
+    if(!running)return;
+    paused=!paused;
+    $("pauseBtn").textContent=paused?"▶ RESUME":"Ⅱ PAUSE";
+    if(paused) music.pause();
+    else if($("musicToggle").checked&&!gameOver) music.play().catch(()=>{});
+  };
+}
+$("flapBtn").onclick=flap;
+canvas.addEventListener("pointerdown",e=>{e.preventDefault();flap()});
+document.addEventListener("keydown",e=>{if(["Space","ArrowUp"].includes(e.code)){e.preventDefault();flap()}});
+$("musicToggle").onchange=()=>{
+  const inGame=$("gameScreen")?.classList.contains("active");
+  if($("musicToggle").checked&&running&&!gameOver&&inGame&&!paused) music.play().catch(()=>{});
+  else music.pause();
+};
+
+function renderVolumeControl(id,value){
+  const input=$(id), control=input.parentElement;
+  const fill=control.querySelector(".volume-fill"), thumb=control.querySelector(".volume-thumb");
+  const pct=Math.max(0,Math.min(100,Number(value)||0));
+  input.value=String(pct);
+  fill.style.width=pct+"%";
+  thumb.style.left=pct+"%";
+  control.setAttribute("aria-valuenow",String(pct));
+  control.setAttribute("aria-valuetext",pct+" percent");
+}
+function syncVolumeUI(){
+  const mv=Math.max(0,Math.min(100,Math.round(Number(music.volume)*100)));
+  const sv=Math.max(0,Math.min(100,Math.round(Number(sfxVolume)*100)));
+  $("musicVolumeValue").textContent=mv+"%";
+  $("sfxVolumeValue").textContent=sv+"%";
+  renderVolumeControl("musicVolume",mv);
+  renderVolumeControl("sfxVolume",sv);
+}
+function setVolumeFromPointer(control,input,clientX){
+  const r=control.getBoundingClientRect();
+  const pct=Math.max(0,Math.min(100,((clientX-r.left)/r.width)*100));
+  const value=Math.round(pct);
+  input.value=String(value);
+  input.dispatchEvent(new Event("input",{bubbles:true}));
+  renderVolumeControl(input.id,value);
+}
+function wireVolumeControl(id){
+  const input=$(id), control=input.parentElement;
+  if(!input || !control)return;
+
+  let dragging=false;
+  control.tabIndex=0;
+  control.setAttribute("role","slider");
+  control.setAttribute("aria-valuemin","0");
+  control.setAttribute("aria-valuemax","100");
+
+  control.addEventListener("pointerdown",e=>{
+    e.preventDefault();
+    dragging=true;
+    control.setPointerCapture?.(e.pointerId);
+    setVolumeFromPointer(control,input,e.clientX);
+  });
+
+  control.addEventListener("pointermove",e=>{
+    if(!dragging)return;
+    e.preventDefault();
+    setVolumeFromPointer(control,input,e.clientX);
+  });
+
+  const stopDragging=()=>{dragging=false;};
+  control.addEventListener("pointerup",stopDragging);
+  control.addEventListener("pointercancel",stopDragging);
+  control.addEventListener("lostpointercapture",stopDragging);
+
+  control.addEventListener("keydown",e=>{
+    const current=Number(input.value)||0;
+    let next=current;
+    if(e.key==="ArrowLeft"||e.key==="ArrowDown")next=current-1;
+    if(e.key==="ArrowRight"||e.key==="ArrowUp")next=current+1;
+    if(e.key==="PageDown")next=current-10;
+    if(e.key==="PageUp")next=current+10;
+    if(e.key==="Home")next=0;
+    if(e.key==="End")next=100;
+    if(next!==current){
+      e.preventDefault();
+      input.value=String(Math.max(0,Math.min(100,next)));
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+    }
+  });
+}
+$("musicVolume").oninput=()=>{
+  music.volume=Math.max(0,Math.min(1,Number($("musicVolume").value)/100));
+  localStorage.setItem("sr_musicVol",String(music.volume));
+  syncVolumeUI();
+};
+$("sfxVolume").oninput=()=>{
+  sfxVolume=Math.max(0,Math.min(1,Number($("sfxVolume").value)/100));
+  localStorage.setItem("sr_sfxVol",String(sfxVolume));
+  syncVolumeUI();
+};
+wireVolumeControl("musicVolume");
+wireVolumeControl("sfxVolume");
+syncVolumeUI();
+
+// Music is game-only: leaving the play screen, dying, or pausing stops it.
+// The Audio element already has loop=true, so it restarts automatically at the end.
+const _showScreen=showScreen;
+showScreen=function(id){
+  _showScreen(id);
+  if(id!=="gameScreen") music.pause();
+  else if(running&&!gameOver&&!paused&&$("musicToggle").checked) music.play().catch(()=>{});
+};
+updateMenu();
+</script>
+<button id="fullscreenBtn" class="fullscreen-fallback">⛶ FULLSCREEN</button>
+<script id="mobileSupportJS">
+(function(){
+  const fsBtn = document.getElementById("fullscreenBtn");
+  const gameCanvas = document.getElementById("gameCanvas") || document.querySelector("canvas");
+
+  function isFullscreen(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  async function toggleFullscreen(){
+    const target = document.documentElement;
+    try {
+      if (!isFullscreen()) {
+        if (target.requestFullscreen) await target.requestFullscreen();
+        else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
+        else if (target.msRequestFullscreen) target.msRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    } catch(e) {}
+  }
+
+  if (fsBtn) {
+    fsBtn.addEventListener("click", toggleFullscreen);
+    fsBtn.addEventListener("touchend", function(e){
+      e.preventDefault();
+      toggleFullscreen();
+    }, {passive:false});
+  }
+
+  function updateFsText(){
+    if (fsBtn) fsBtn.textContent = isFullscreen() ? "⛶ EXIT FULLSCREEN" : "⛶ FULLSCREEN";
+  }
+  document.addEventListener("fullscreenchange", updateFsText);
+  document.addEventListener("webkitfullscreenchange", updateFsText);
+
+  // Pointer events on the canvas already handle mouse and touch flap input.
+  // Do not synthesize extra mouse/touch events here, or one tap can flap twice.
+
+  // Prevent accidental page scrolling/zoom gestures while playing.
+})();
+</script>
+
+<script id="keyboardAndMoneyControls">
+(function(){
+  function gameIsActive(){
+    const g = document.getElementById("gameScreen");
+    return g && getComputedStyle(g).display !== "none";
+  }
+
+  // Stop ArrowUp / Space from scrolling the page while playing.
+  document.addEventListener("keydown", function(e){
+    if (!gameIsActive()) return;
+    if (e.code === "ArrowUp" || e.code === "Space") {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, {capture:true});
+
+  // Also block browser scrolling from wheel/touch-style keyboard scrolling
+  // while the game is active.
+
+  const canvas = document.getElementById("gameCanvas") || document.querySelector("#gameScreen canvas");
+  if (!canvas) return;
+
+  // Pointer events on the canvas already handle click/tap flap input.
+  // Avoid adding click/touchend fallbacks because they can trigger a second flap.
+
+  // Keep the game viewport fixed while in fullscreen.
+  function normalizeFullscreenViewport(){
+    requestAnimationFrame(function(){
+      window.scrollTo(0,0);
+      document.documentElement.scrollTop=0;
+      document.body.scrollTop=0;
+    });
+  }
+  document.addEventListener("fullscreenchange", normalizeFullscreenViewport);
+  document.addEventListener("webkitfullscreenchange", normalizeFullscreenViewport);
+})();
+</script>
+
+<script id="robustKeyboardControls">
+(function(){
+  let lastKeyTime = 0;
+
+  function activeGame(){
+    const g = document.getElementById("gameScreen");
+    return g && getComputedStyle(g).display !== "none";
+  }
+
+  function flapNow(){
+    if (!activeGame()) return;
+
+    // Try common existing flap function names first.
+    if (typeof window.flap === "function") {
+      window.flap();
+      return;
+    }
+    if (typeof window.jump === "function") {
+      window.jump();
+      return;
+    }
+
+    // Fall back to the game's existing keyboard/click event path.
+    const canvas = document.getElementById("gameCanvas") ||
+                   document.querySelector("#gameScreen canvas");
+    if (canvas) {
+      canvas.dispatchEvent(new MouseEvent("mousedown", {
+        bubbles: true,
+        cancelable: true,
+        clientX: canvas.clientWidth / 2,
+        clientY: canvas.clientHeight / 2
+      }));
+    }
+  }
+
+  function handleKey(e){
+    if (!activeGame()) return;
+
+    if (e.code === "ArrowUp" || e.key === "ArrowUp" ||
+        e.code === "Space" || e.key === " ") {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      // Avoid duplicate keydown/keyup triggers.
+      const now = performance.now();
+      if (now - lastKeyTime > 70) {
+        lastKeyTime = now;
+        flapNow();
+      }
+    }
+  }
+
+  // Capture phase makes this work even if another game listener exists.
+  window.addEventListener("keydown", handleKey, true);
+  document.addEventListener("keydown", handleKey, true);
+
+  // Prevent keyup from causing browser/page behavior.
+  window.addEventListener("keyup", function(e){
+    if (activeGame() &&
+        (e.code === "ArrowUp" || e.key === "ArrowUp" ||
+         e.code === "Space" || e.key === " ")) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+})();
+</script>
+
+<style id="bossUpgradeStyles">
+.boss-hud{display:none;grid-template-columns:1fr auto;gap:10px;align-items:center;margin:8px 0;padding:10px;border:1px solid #ffdc57;background:#120f03;box-shadow:0 0 18px rgba(255,205,65,.16)}
+.boss-hud.show{display:grid}.boss-title{color:#ffe58a;font-weight:900;letter-spacing:2px}.boss-sub{font-size:10px;color:#c9b76a;margin-top:3px}.boss-bar{height:12px;border:1px solid #ffdc57;background:#211b05;overflow:hidden}.boss-fill{height:100%;width:100%;background:linear-gradient(90deg,#ffe45b,#ff9f1c);transition:width .12s}.boss-money{color:#fff0a8;font-weight:900;text-align:right;white-space:nowrap}.boss-controls{display:none;gap:10px;margin-top:10px}.boss-controls.show{display:flex}.boss-controls .btn{flex:1}.boss-reward{color:#ffe27a}.hearts-box{display:none}#moneyShotBtn{display:none}#moneyShotBtn.show{display:inline-flex}.hearts-box.show{display:block}.hearts-box b{letter-spacing:4px;color:#ff5c75;text-shadow:0 0 10px rgba(255,92,117,.45);font-size:18px}.heart-lost{opacity:.2;filter:grayscale(1)}
+</style>
+<style id="powerupUpgradeStyles">
+.powerup-bar{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.power-chip{border:1px solid rgba(57,255,136,.3);background:#031009;color:#a9e8bb;padding:5px 8px;font-size:9px;letter-spacing:1px}.power-chip.active{border-color:#39ff88;color:#d9ffe5}.powerups-panel{padding:24px}.powerups-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin-bottom:14px}.powerups-head h2{margin:0;color:var(--green);letter-spacing:4px}.powerups-count{color:#70b88e;font-size:12px;letter-spacing:2px}.powerup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-height:65vh;overflow:auto}.power-card{border:1px solid var(--line);background:#031009;padding:12px}.power-card.equipped{border-color:#39ff88}.power-card h3{font-size:14px;margin:0 0 5px;color:#caffdd}.power-card p{font-size:11px;line-height:1.35;color:#6da783;min-height:31px;margin:0}.power-card .power-meta{display:flex;justify-content:space-between;margin-top:9px;color:#9ad9ad;font-size:9px;letter-spacing:1px}.power-card button{width:100%;margin-top:9px;padding:9px 7px;font-size:10px}.resume-note{text-align:center;color:#62ff9c;font-size:11px;letter-spacing:1px}@media(max-width:900px){.powerup-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.powerup-grid{grid-template-columns:1fr}}
+
+/* gameplay polish */
+#pauseOverlay{z-index:20}
+#pauseBtn{min-width:110px}
+#bossIncomingBanner{position:fixed;inset:0;z-index:80;display:grid;place-items:center;pointer-events:none;background:rgba(0,0,0,.34);animation:bossBannerFade 1.8s ease-out forwards}
+.boss-banner-card{width:min(680px,90vw);padding:26px;text-align:center;border:2px solid #ffdc57;background:rgba(8,8,2,.9);box-shadow:0 0 50px rgba(255,205,65,.3)}
+.boss-banner-kicker{font-size:12px;letter-spacing:5px;color:#ffe68b}.boss-banner-title{font-size:clamp(28px,6vw,58px);font-weight:900;letter-spacing:5px;color:#ffe45b;text-shadow:0 0 22px rgba(255,215,70,.65);margin:8px 0}.boss-banner-sub{font-size:11px;letter-spacing:2px;color:#cdbf80}
+@keyframes bossBannerFade{0%{opacity:0;transform:scale(.94)}12%,70%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.03)}}
+@media(max-width:700px){#pauseBtn{min-width:30%;}.boss-banner-card{padding:20px 12px}.boss-banner-title{letter-spacing:2px}}
+</style>
+<section id="powerupsScreen" class="screen"><div class="panel powerups-panel"><div class="powerups-head"><div><h2>⚡ POWER-UP VAULT</h2><small style="color:#639879">150 power-ups • toggle up to 7 active at once</small></div><div class="powerups-count" id="powerupsCount">0 / 7 EQUIPPED</div></div><div class="powerup-grid" id="powerupGrid"></div><button class="btn back" id="powerupsBack">← BACK</button></div></section>
+<script id="powerupUpgradeJS">
+(function(){
+ const $=id=>document.getElementById(id);
+ const MAX_EQUIPPED=7;
+ const powerNames=[
+  'Vaultbreaker','Money Mirage','Cash Comet','Neon Payday','Double Stack','Golden Gravity','Coin Cyclone','Rack Hacker','Mint Meteor','Profit Pulse','Lucky Ledger','Bankshot','Cash Cannon','Dollar Dash','Treasure Magnet',
+  'Ghost Ledger','Turbo Wallet','Vault Shield','Royal Reroute','Stack Surge','Coin Echo','Money Bloom','Jackpot Jet','Mint Multiplier','Cashquake','Diamond Drift','Profit Phantom','Gold Rush','Bank Vault','Payout Portal',
+  'Cash Clone','Money Printer','Coin Reactor','Stack Splitter','Dollar Dynamo','Treasure Engine','Vault Vortex','Neon Dividend','Golden Compass','Profit Prism','Lucky Lander','Cash Lantern','Mint Rocket','Bank Boost','Royal Coiner',
+  'Money Magnetron','Double Dividend','Coin Crown','Stack Snatcher','Vault Runner','Cash Nova','Dollar Dragon','Profit Wings','Golden Gate','Mint Shield','Jackpot Core','Treasure Pulse','Bank Blaster','Money Bloom X','Coin Comet',
+  'Cash Phoenix','Vault Echo','Double Down','Profit Warp','Golden Halo','Coin Crusher','Stack Storm','Money Matrix','Neon Vault','Dollar Disco','Mint Mirage','Cash Radar','Bank Bender','Royal Rush','Treasure Tornado',
+  'Coin Cathedral','Profit Parachute','Vault Spark','Money Moon','Double Fortune','Cash Orbit','Gold Glider','Stack Reactor','Dollar Surge','Mint Machine','Bank Beacon','Coin Kraken','Profit Rocket','Treasure Wings','Cash Bloom',
+  'Vault Nova','Money Magnet','Double Cash','Golden Engine','Coin Samurai','Stack Phantom','Dollar Pulse','Profit Portal','Mint Comet','Bank Shield','Treasure Thruster','Cash Crown','Vault Runner II','Money Meteor','Coin Jackpot',
+  'Double Payday','Profit Dragon','Golden Radar','Stack Cyclone','Cash Oracle','Dollar Warp','Mint Guardian','Bank Cannon','Treasure Reactor','Coin Flash','Money Fortress','Vault Booster','Profit Halo','Cash Hurricane','Double Vault',
+  'Golden Jackpot','Coin Phoenix','Stack Compass','Dollar Echo','Money Surge','Mint Rocket II','Bank Mirage','Treasure Multiplier','Cash Titan','Vault Magnet','Profit Comet','Coin Dynamo','Double Stack II','Golden Shield','Money Prism',
+  'Cash Accelerator','Dollar Defender','Mint Jackpot','Bank Cyclone','Treasure Nova','Coin Portal','Profit Magnet','Vault Dragon','Double Money','Golden Pulse','Stack Cannon','Cash Mirage','Money Wings','Dollar Reactor','Coin Crown II',
+  'Vault Jackpot','Profit Storm','Mint Echo','Double Dividend II','Golden Comet','Cash Guardian','Money Cyclone','Bank Portal','Treasure Engine II','Coin Shield','Stack Surge II','Dollar Phoenix','Vault Radar','Profit Thruster','Double Cash II'
+ ];
+ const effectTemplates=[
+  ['COIN DOUBLE','Doubles every coin payout.','coinMult',2],
+  ['COIN VALUE','Adds bonus coins to every pickup.','coinBonus',1],
+  ['SCORE BLAST','Adds a flat score burst when a coin is collected.','scorePickup',60],
+  ['COIN MAGNET','Pulls coins from a larger radius.','magnet',220],
+  ['COIN RUSH','Creates extra coins periodically.','rain',0.018],
+  ['RACK BONUS','Adds score whenever a rack is cleared.','rackBonus',12],
+  ['SLOW MOTION','Reduces rack movement speed.','slow',0.14],
+  ['TURBO SCORE','Generates passive score while flying.','passiveScore',0.12],
+  ['LIGHT GRAVITY','Reduces gravity.','gravity',0.18],
+  ['FLAP BOOST','Makes each flap stronger.','flap',1.8],
+  ['EDGE BOUNCE','Bounces you away from screen edges.','edge',1],
+  ['GHOST HITBOX','Shrinks your collision box.','ghost',8],
+  ['RACK SHRINK','Narrows rack collision width.','rackShrink',9],
+  ['RACK GAP','Widens every rack gap.','gap',10],
+  ['SHIELD','Blocks one rack collision.','shield',1],
+  ['COMBO CHARGE','Builds combo faster from pickups.','combo',1],
+  ['COMBO CASH','Turns combo level into extra coins.','comboCash',1],
+  ['NEAR-MISS BANK','Near misses grant bonus score.','near',35],
+  ['COIN STREAK','Long coin streaks award bonus money.','streak',15],
+  ['PAYDAY TIMER','Every few seconds pays a coin bonus.','payday',1],
+  ['LUCKY DROP','Boosts the chance of special cash drops.','lucky',0.12],
+  ['PICKUP PULSE','Collecting anything sends out a score pulse.','pulse',20],
+  ['COIN CLONE','Collected coins have a chance to clone.','clone',0.25],
+  ['JACKPOT','Occasionally doubles a whole coin pickup.','jackpot',0.08],
+  ['CASHBACK','Returns part of score as coins at intervals.','cashback',0.02],
+  ['RACK JACKPOT','Rare rack clears pay huge coin bonuses.','rackJackpot',0.06],
+  ['TREASURE TRAIL','Leaves periodic coin pickups behind you.','trail',0.014],
+  ['WALLET ARMOR','The first edge hit each run is ignored.','edgeShield',1],
+  ['TIME BANK','Extends temporary power durations.','time',1.25],
+  ['SPEED CUT','Drops speed after collecting a coin briefly.','speedCut',0.08],
+  ['SCORE MULTIPLIER','Multiplies score earned from pickups.','scoreMult',1.25],
+  ['COIN SCORE','Every coin is worth extra score.','coinScore',30],
+  ['RACK CASH','Rack clears directly pay coins.','rackCash',1],
+  ['LEVEL BONUS','Higher levels generate larger coin bonuses.','levelCash',2],
+  ['MONEY FRENZY','For a short burst, coin value is doubled after pickups.','frenzy',1],
+  ['VAULT KEY','Every 50 score grants a bonus coin.','scoreKey',1],
+  ['DOUBLE ORBIT','Coins near you are worth twice as much.','orbitDouble',1],
+  ['CASH NOVA','Every 10 coins triggers a large score explosion.','nova',120],
+  ['PROFIT ENGINE','Passive coins arrive while flying.','passiveCoins',0.035],
+  ['BANK INTEREST','Adds coins based on your current combo at intervals.','interest',1],
+  ['COIN MIRROR','Mirrors one coin pickup into another nearby coin.','mirror',0.12],
+  ['GOLDEN RACKS','Passing a rack has a chance to create a coin.','rackCoinChance',0.3],
+  ['PAYDAY DOUBLE','Every periodic payday pays double.','paydayDouble',2],
+  ['MINT CONDITION','Coin pickups also heal vertical momentum slightly.','mint',0.5],
+  ['CASH SHOCKWAVE','Coin pickups push nearby racks away.','shockwave',18],
+  ['PROFIT ANCHOR','Reduces speed scaling as levels rise.','anchor',0.05],
+  ['COIN FORTUNE','Increases all money gains by a percentage.','moneyPct',0.2],
+  ['DOUBLE FORTUNE','Doubles money gains.','moneyDouble',2],
+  ['VAULT PASS','A collision has a chance to phase through instead.','phase',0.12],
+  ['ROYAL SHIELD','Blocks a collision and grants coins.','royalShield',1],
+  ['STACK SPLIT','Rack clears award two score bursts.','split',2],
+  ['TREASURE MAP','Magnet range expands dramatically.','mapMagnet',320],
+  ['COIN BLAST','Every pickup sprays bonus coins.','blastCoins',2],
+  ['MONEY STORM','Extra coins rain much more often.','storm',0.045],
+  ['JACKPOT ENGINE','Rare pickups pay a giant coin reward.','jackpotCoins',20],
+  ['DOUBLE PAYDAY','Payday reward is doubled.','paydayX2',2],
+  ['CASH REFLEX','Near misses increase your next coin value.','reflex',1],
+  ['PROFIT CHAIN','Each consecutive coin adds more score.','chain',8],
+  ['COIN BARRIER','Coins briefly absorb one collision.','coinBarrier',1],
+  ['BANKROLL','Every 100 score pays coins.','bankroll',3],
+  ['MONEY BEACON','Pulls coins toward the player and increases value.','beacon',1.5],
+  ['DOUBLE STACK','Coins collected while combo is 5+ are doubled.','doubleStack',2],
+  ['GOLDEN MOMENT','A random short money frenzy triggers periodically.','goldenMoment',0.04],
+  ['CASH ENGINE','Every pickup adds passive score for a few seconds.','cashEngine',10],
+  ['VAULT BLESSING','Start each run with a shield and bonus coins.','blessing',1],
+  ['MINTED SCORE','Coin pickups scale with level.','mintScore',10],
+  ['DOUBLE TREASURE','Special boost pickups award double coins.','doubleTreasure',2],
+  ['RACK REBATE','Rack clears refund coins based on level.','rebate',1],
+  ['PROFIT WAVE','Every 25 score emits bonus coins.','wave',2],
+  ['COIN GUARDIAN','A coin pickup temporarily prevents edge death.','guardian',1],
+  ['MONEY PHANTOM','Chance to collect coins slightly after passing them.','phantom',55],
+  ['DOUBLE VAULT','Doubles money earned from rack bonuses.','doubleRackCash',2],
+  ['CASH CATALYST','Combos amplify coin value.','catalyst',0.15],
+  ['COIN HARVESTER','Large coin radius plus bonus score.','harvester',190],
+  ['PROFIT FUEL','Coin pickups reduce current speed for safer flight.','fuel',0.1],
+  ['DOUBLE CASHFLOW','All periodic coin income is doubled.','doublePassive',2],
+  ['TREASURE LOCK','Coin multiplier rises with consecutive pickups.','lock',0.1],
+  ['BANKSHOT','Passing close to a rack awards a coin.','bankshot',18],
+  ['GOLD RESERVE','Stores bonus coins and pays them at run end.','reserve',1],
+  ['MONEY THRUST','Flap strength increases with combo.','thrust',0.35],
+  ['COIN SINGULARITY','Pulls every visible coin toward you.','singularity',999],
+  ['DOUBLE DIVIDEND','Every coin has a guaranteed extra coin.','dividend',1],
+  ['PAYDAY PRISM','Payday reward scales with level.','prism',3],
+  ['CASH TITAN','Big score bonus every 500 score.','titan',250],
+  ['DOUBLE JACKPOT','Jackpot rewards are doubled.','doubleJackpot',2],
+  ['VAULT ECHO','Some coin pickups repeat automatically.','echo',0.2],
+  ['PROFIT SHIELD','Shield blocks a collision and boosts combo.','profitShield',1],
+  ['MONEY CROWN','Combo 10 gives double money.','crown',2],
+  ['COIN CANNON','Occasionally fires a burst of 5 coins ahead.','cannon',0.012],
+  ['DOUBLE RAIN','Coin rain spawns twice as often.','doubleRain',2],
+  ['STACK BONANZA','Every 100 coins collected grants a huge score bonus.','bonanza',300],
+  ['CASH COMBO','Combo increases coin value.','cashCombo',0.1],
+  ['MINTED ARMOR','Coin pickups reduce collision hitbox briefly.','mintArmor',5],
+  ['DOUBLE ORACLE','Chance to double any money reward.','oracle',0.22],
+  ['GOLDEN TRAIL','Coin trail rewards are doubled.','goldTrail',2],
+  ['PROFIT LOOP','Every 10 seconds repeats your last coin reward.','loop',1],
+  ['DOUBLE BANKROLL','Bankroll payouts are doubled.','doubleBankroll',2],
+  ['TREASURE CORE','Every special pickup grants coins.','treasureCore',3],
+  ['CASH QUANTUM','Coin rewards randomly become 1x, 2x, or 3x.','quantum',3],
+  ['DOUBLE QUANTUM','Quantum money rolls are at least doubled.','doubleQuantum',2],
+  ['MONEY HALO','Nearby coins are worth 50% more.','halo',1.5],
+  ['VAULT OVERRIDE','The next collision after a coin is ignored.','override',1],
+  ['DOUBLE OVERRIDE','Override also grants a coin bonus.','doubleOverride',2],
+  ['PROFIT MIRROR','Rack score is mirrored into coins at intervals.','profitMirror',0.05],
+  ['COIN ENGINE','Each coin increases passive score rate.','coinEngine',0.01],
+  ['DOUBLE ENGINE','Passive coin engine income is doubled.','doubleEngine',2],
+  ['CASH FUSION','Coin + combo creates bonus score.','fusion',12],
+  ['TREASURE FUSION','Coin + level creates bonus coins.','fusionCoins',1],
+  ['DOUBLE FUSION','Fusion payouts are doubled.','doubleFusion',2],
+  ['GOLDEN EDGE','Edge saves grant coins.','goldEdge',5],
+  ['MONEY ANCHOR','Prevents speed from exceeding a safer cap.','moneyAnchor',0.7],
+  ['DOUBLE ANCHOR','Anchor also doubles edge-save rewards.','doubleAnchor',2],
+  ['VAULT STREAK','Every 5 racks grants a coin bundle.','vaultStreak',5],
+  ['DOUBLE STREAK','Streak bundle is doubled.','doubleStreak',2],
+  ['CASH BLOOM','Coin pickups create 3 mini coin chances.','bloom',3],
+  ['DOUBLE BLOOM','Bloom creates twice as many chances.','doubleBloom',2],
+  ['PROFIT SHIELD II','Second collision shield with a coin payout.','shield2',1],
+  ['DOUBLE SHIELD','Every shield save also doubles the next coin.','doubleShield',2],
+  ['TREASURE RADAR','Highlights distant coins by pulling them slightly.','radar',250],
+  ['DOUBLE RADAR','Radar-pulled coins pay double.','doubleRadar',2],
+  ['MONEY WARP','Every 250 score teleports a coin to you.','warp',250],
+  ['DOUBLE WARP','Warped coins pay double.','doubleWarp',2],
+  ['CASH FINALE','Run-end coins receive a bonus.','finale',0.25],
+  ['DOUBLE FINALE','Run-end coin bonus is doubled.','doubleFinale',2],
+  ['GOLDEN SCORE','Money pickups grant extra score based on money earned.','goldScore',15],
+  ['DOUBLE GOLDEN SCORE','Golden score is doubled.','doubleGoldScore',2],
+  ['VAULT MASTER','All coin multipliers gain a small bonus.','master',0.15],
+  ['DOUBLE VAULT MASTER','Vault Master bonus is doubled.','doubleMaster',2],
+  ['CASH LEGEND','At combo 10, gain coins and score.','legend',25],
+  ['DOUBLE LEGEND','Legend payout is doubled.','doubleLegend',2],
+  ['PROFIT EMPEROR','Every 10 racks grants a cash burst.','emperor',10],
+  ['DOUBLE EMPEROR','Emperor cash burst is doubled.','doubleEmperor',2],
+  ['MONEY GODMODE','Very rare chance for a massive double-money pickup.','godmode',0.03],
+  ['DOUBLE MONEY','Every coin reward is doubled.','moneyDouble2',2],
+  ['TREASURE GOD','Special rewards are doubled and racks pay extra.','treasureGod',2],
+  ['FINAL JACKPOT','Occasionally awards 50 coins instantly.','finalJackpot',0.015],
+  ['DOUBLE FINAL JACKPOT','Final jackpot reward is doubled.','doubleFinalJackpot',2],
+  ['CASH OVERDRIVE','Money gains rise as score rises.','overdrive',0.0004],
+  ['DOUBLE OVERDRIVE','Overdrive money gain is doubled.','doubleOverdrive',2],
+  ['VAULT ASCENSION','Leveling up awards a coin burst.','ascension',5],
+  ['DOUBLE ASCENSION','Ascension payout is doubled.','doubleAscension',2],
+  ['COIN REIGN','Continuous small coin rain.','reign',0.025],
+  ['DOUBLE REIGN','Coin reign rate is doubled.','doubleReign',2],
+  ['PROFIT APOCALYPSE','Every 1000 score grants a huge cash payout.','apocalypse',20],
+  ['DOUBLE APOCALYPSE','Apocalypse payout is doubled.','doubleApocalypse',2],
+  ['MONEY ECLIPSE','Occasionally doubles all current run money.','eclipse',0.01],
+  ['DOUBLE ECLIPSE','Eclipse chance is doubled.','doubleEclipse',2],
+  ['TREASURE SOVEREIGN','Massive bonus for every 25 racks cleared.','sovereign',25],
+  ['DOUBLE SOVEREIGN','Sovereign bonus is doubled.','doubleSovereign',2],
+  ['CASH SUPERNOVA','Every 20 coins triggers a giant score burst.','supernova',500],
+  ['DOUBLE SUPERNOVA','Supernova score burst is doubled.','doubleSupernova',2],
+  ['VAULT INFINITY','Coins have a chance to become infinite-value bonus coins.','infinity',0.005],
+  ['DOUBLE INFINITY','Infinity bonus reward is doubled.','doubleInfinity',2],
+  ['PROFIT PHOENIX','First death converts into a coin-heavy second chance.','phoenix',1],
+  ['DOUBLE PHOENIX','Phoenix second chance grants double money.','doublePhoenix',2],
+  ['MONEY SINGULARITY','Rarely doubles every coin collected for 5 seconds.','moneySingularity',0.02],
+  ['DOUBLE SINGULARITY','Singularity duration is doubled.','doubleSingularity',2],
+  ['TREASURE DYNASTY','Every 50 racks grants a large money chest.','dynasty',50],
+  ['DOUBLE DYNASTY','Dynasty chest is doubled.','doubleDynasty',2],
+  ['CASH ABSOLUTE','Every 500 score guarantees a double-money event.','absolute',500],
+  ['DOUBLE ABSOLUTE','Absolute event pays twice.','doubleAbsolute',2],
+  ['VAULT APOGEE','At level 10+, money rewards gain a large multiplier.','apogee',2],
+  ['DOUBLE APOGEE','Apogee multiplier is doubled.','doubleApogee',2],
+  ['PROFIT ETERNITY','Periodic payouts grow each time they trigger.','eternity',1],
+  ['DOUBLE ETERNITY','Eternity growth starts doubled.','doubleEternity',2],
+  ['MONEY FUSION','Combines score and coins into bonus cash.','moneyFusion',0.02],
+  ['DOUBLE MONEY FUSION','Money Fusion payout is doubled.','doubleMoneyFusion',2],
+  ['TREASURE ASCENDANT','Each level grants a bigger cash bonus.','ascendant',3],
+  ['DOUBLE ASCENDANT','Ascendant bonuses are doubled.','doubleAscendant',2],
+  ['CASH OMEGA','Every 100 coins grants a giant score-and-cash event.','omega',100],
+  ['DOUBLE OMEGA','Omega event is doubled.','doubleOmega',2],
+  ['VAULT ETERNAL','Coin rewards slowly increase during the run.','eternal',0.01],
+  ['DOUBLE ETERNAL','Eternal growth is doubled.','doubleEternal2',2],
+  ['PROFIT SOVEREIGN','At combo 10, money rewards are doubled.','profitSovereign',2],
+  ['DOUBLE SOVEREIGN II','Sovereign money bonus is doubled again.','doubleSovereign2',2],
+  ['MONEY EMPYREAN','Rare huge money multiplier for lucky pickups.','empyrean',4],
+  ['DOUBLE EMPYREAN','Empyrean multiplier is doubled.','doubleEmpyrean',2],
+  ['TREASURE ULTIMATE','A rare pickup awards a massive coin chest.','ultimate',35],
+  ['DOUBLE ULTIMATE','Ultimate chest is doubled.','doubleUltimate',2],
+  ['CASH OBLIVION','Extremely rare full money double.','oblivion',0.004],
+  ['DOUBLE OBLIVION','Oblivion chance is doubled.','doubleOblivion',2],
+  ['VAULT FINALITY','At run end, every 100 score becomes bonus coins.','finality',100],
+  ['DOUBLE FINALITY','Finality conversion is doubled.','doubleFinality',2]
+ ];
+ // Exactly 150 entries: each has its own name, flavor, mechanic, and tuned value.
+ const powers=powerNames.slice(0,150).map((name,i)=>{
+   const e=effectTemplates[i%effectTemplates.length];
+   const cycle=Math.floor(i/effectTemplates.length);
+   const value=e[3]*(1+cycle*.08);
+   return {id:'p'+(i+1),index:i+1,name,desc:e[1],effect:e[2],value,tag:e[0]};
+ });
+ 
+ let equipped=[];try{equipped=JSON.parse(localStorage.getItem('sr_equipped')||'[]')}catch(e){};
+ equipped=equipped.filter(id=>powers.some(p=>p.id===id)).slice(0,MAX_EQUIPPED);
+ let runMoneyMult=1, nextCoinDouble=0, edgeSaved=false, phoenixUsed=false, paydayClock=0, passiveCoinClock=0, lastScoreMilestone=0, lastLevel=1, lastRackCount=0, streakBonus=0;
+ function save(){localStorage.setItem('sr_equipped',JSON.stringify(equipped));}
+ function active(effect){return powers.filter(p=>equipped.includes(p.id)&&p.effect===effect);}
+ function sum(effect){return active(effect).reduce((n,p)=>n+p.value,0);}
+ function max(effect){return active(effect).reduce((n,p)=>Math.max(n,p.value),0);}
+ function has(effect){return active(effect).length>0;}
+ function moneyMultiplier(){
+   let m=1;
+   if(has('coinMult'))m*=max('coinMult');
+   if(has('moneyDouble'))m*=2;
+   if(has('moneyDouble2'))m*=2;
+   if(has('doubleStack')&&combo>=5)m*=2;
+   if(has('profitSovereign')&&combo>=10)m*=2;
+   if(has('master'))m+=sum('master');
+   if(has('moneyPct'))m+=sum('moneyPct');
+   if(has('cashCombo'))m+=combo*sum('cashCombo');
+   if(has('lock'))m+=streakBonus;
+   if(runMoneyMult>1)m*=runMoneyMult;
+   return Math.max(1,m);
+ }
+ function giveCoins(base,reason='CASH'){
+   let amount=Math.max(0,Math.floor(base));
+   if(!amount)return 0;
+   let m=moneyMultiplier();
+   if(has('oracle')&&Math.random()<max('oracle'))m*=2;
+   if(has('quantum'))m*=1+Math.floor(Math.random()*3);
+   if(has('doubleQuantum'))m*=2;
+   if(has('jackpot')&&Math.random()<max('jackpot'))m*=2;
+   if(nextCoinDouble>0){m*=2;nextCoinDouble--;}
+   if(has('halo'))m*=max('halo');
+   if(has('doubleTreasure')&&reason.includes('SPECIAL'))m*=2;
+   if(has('doubleRadar')&&reason==='RADAR')m*=2;
+   if(has('doubleWarp')&&reason==='WARP')m*=2;
+   if(has('goldTrail')&&reason==='TRAIL')m*=2;
+   if(has('paydayDouble')&&reason==='PAYDAY')m*=2;
+   if(has('doubleBankroll')&&reason==='BANKROLL')m*=2;
+   if(has('doubleStreak')&&reason==='STREAK')m*=2;
+   if(has('doubleEmperor')&&reason==='EMPEROR')m*=2;
+   if(has('doubleJackpot')&&reason==='JACKPOT')m*=2;
+   if(has('doubleLegend')&&reason==='LEGEND')m*=2;
+   if(has('doubleFinalJackpot')&&reason==='FINAL JACKPOT')m*=2;
+   if(has('doubleAscension')&&reason==='ASCENSION')m*=2;
+   if(has('doubleApocalypse')&&reason==='APOCALYPSE')m*=2;
+   if(has('doubleSovereign')&&reason==='SOVEREIGN')m*=2;
+   if(has('doubleInfinity')&&reason==='INFINITY')m*=2;
+   if(has('doublePhoenix')&&reason==='PHOENIX')m*=2;
+   if(has('doubleDynasty')&&reason==='DYNASTY')m*=2;
+   if(has('doubleAbsolute')&&reason==='ABSOLUTE')m*=2;
+   if(has('doubleApogee')&&level>=10)m*=2;
+   if(has('doubleOmega')&&reason==='OMEGA')m*=2;
+   if(has('doubleMoneyFusion')&&reason==='FUSION')m*=2;
+   if(has('doubleUltimate')&&reason==='ULTIMATE')m*=2;
+   if(has('doubleOblivion')&&reason==='OBLIVION')m*=2;
+   if(has('doubleFinality')&&reason==='FINALITY')m*=2;
+   if(has('doubleDividend'))amount+=amount;
+   if(has('dividend'))amount+=amount;
+   if(has('doubleEngine')&&reason==='PASSIVE')m*=2;
+   if(has('doublePassive')&&reason==='PASSIVE')m*=2;
+   if(has('moneySingularity')&&Math.random()<max('moneySingularity')){m*=2;runMoneyMult=Math.max(runMoneyMult,2);}
+   if(has('godmode')&&Math.random()<max('godmode'))m*=2;
+   if(has('eclipse')&&Math.random()<max('eclipse'))m*=2;
+   if(has('infinity')&&Math.random()<max('infinity')){m*=10;reason='INFINITY';}
+   if(has('empyrean')&&Math.random()<.025)m*=max('empyrean');
+   if(has('apogee')&&level>=10)m*=max('apogee');
+   if(has('catalyst'))m+=combo*sum('catalyst');
+   if(has('moneyOverdrive'))m+=score*sum('moneyOverdrive');
+   if(has('overdrive'))m+=score*sum('overdrive');
+   amount=Math.max(1,Math.floor(amount*m));
+   coins+=amount;
+   if(window.toast&&amount>base)toast('💰 '+reason+' x'+(amount/base).toFixed(1));
+   return amount;
+ }
+ window.SRPowerups={powers,equipped,save,has,max,sum,moneyMultiplier,giveCoins};
+ const originalPlayerBox=window.playerBox;
+ window.playerBox=function(){
+   const base=originalPlayerBox?originalPlayerBox():{x:player.x+10,y:player.y+7,w:player.w-20,h:player.h-14};
+   const g=Math.min(25,Math.floor(sum('ghost')+sum('mintArmor')));
+   return{x:base.x+g,y:base.y+g*.35,w:Math.max(24,base.w-g*2),h:Math.max(18,base.h-g)};
+ };
+ const originalCreateRack=window.createRack;
+ window.createRack=function(){
+   originalCreateRack();const o=obstacles[obstacles.length-1];
+   if(o){o.visualW=o.w;o.baseGap=o.bottom-o.top;o.w=Math.max(40,o.w-max(0,sum('rackShrink')));const extra=sum('gap');o.bottom=Math.min(H-20,o.bottom+extra);}
+ };
+ const originalDrawRack=window.drawRack;
+ window.drawRack=function(o){if(!o.visualW)return originalDrawRack(o);const old=o.w;o.w=o.visualW;originalDrawRack(o);o.w=old};
+ const originalFlap=window.flap;
+ window.flap=function(){
+   const before=player.vy;originalFlap();
+   const boost=sum('flap')+(has('thrust')?combo*sum('thrust'):0);
+   if(boost)player.vy-=Math.min(7,boost);
+   if(has('mint'))player.vy*=Math.max(.35,1-sum('mint')*.08);
+ };
+ const originalEndGame=window.endGame;
+ window.endGame=function(){
+   if(has('shield')){const p=active('shield')[0];equipped.splice(equipped.indexOf(p.id),1);save();chips();player.vy=-2.8;player.y=Math.max(30,Math.min(H-player.h-30,player.y));toast('🛡 SHIELD BLOCKED CRASH');return;}
+   if(has('shield2')){const p=active('shield2')[0];equipped.splice(equipped.indexOf(p.id),1);save();chips();giveCoins(5,'SHIELD');player.vy=-2.8;player.y=Math.max(30,Math.min(H-player.h-30,player.y));toast('🛡 SECOND SHIELD SAVED YOU');return;}
+   if(has('profitShield')){const p=active('profitShield')[0];equipped.splice(equipped.indexOf(p.id),1);save();chips();combo=Math.min(10,combo+2);giveCoins(10,'SHIELD');player.vy=-3;player.y=H/2;toast('💚 PROFIT SHIELD SAVED YOU');return;}
+   if(has('royalShield')){const p=active('royalShield')[0];equipped.splice(equipped.indexOf(p.id),1);save();chips();giveCoins(20,'ROYAL SHIELD');player.vy=-3;player.y=H/2;toast('👑 ROYAL SHIELD');return;}
+   if(has('phase')&&Math.random()<max('phase')){player.vy=-2.5;player.y=H/2;toast('👻 VAULT PASS PHASED THE CRASH');return;}
+   if(has('edgeShield')&&!edgeSaved){edgeSaved=true;player.vy=-3;player.y=Math.max(28,Math.min(H-player.h-28,player.y));giveCoins(5,'EDGE');toast('🧱 WALLET ARMOR SAVED YOU');return;}
+   if(has('phoenix')&&!phoenixUsed){phoenixUsed=true;giveCoins(20,'PHOENIX');player.y=H/2;player.vy=-4;toast('🔥 PROFIT PHOENIX — SECOND CHANCE');return;}
+   originalEndGame();
+   if(has('finale')){const bonus=Math.floor(coins*sum('finale'));if(bonus>0){coins+=bonus;toast('🏁 CASH FINALE +'+bonus);}}
+ };
+ const originalUpdate=window.update;
+ window.update=function(dt){
+   const coinsBefore=coins,scoreBefore=score,passedBefore=passedRacks,levelBefore=level;
+   if(has('magnet')||has('mapMagnet')||has('treasureRadar')||has('radar')||has('harvester')||has('beacon')||has('singularity')){
+     let radius=Math.max(sum('magnet'),sum('mapMagnet'),sum('radar'),sum('harvester'),sum('beacon'),sum('singularity'));
+     if(has('treasureRadar'))radius=Math.max(radius,250);
+     if(has('singularity'))radius=999;
+     pickups.forEach(c=>{const dx=(player.x+player.w/2)-c.x,dy=(player.y+player.h/2)-c.y,d=Math.hypot(dx,dy);if(d<radius&&d>1){const pull=Math.min(7,.8+radius/180);c.x+=dx/d*pull*dt;c.y+=dy/d*pull*dt;}});
+   }
+   const rainRate=sum('rain')+sum('storm')+sum('doubleRain')*.02+sum('reign');
+   if(rainRate&&Math.random()<Math.min(.09,.002+rainRate))createCoin();
+   originalUpdate(dt);
+   // Tuned movement / collision modifiers.
+   if(has('slow'))speed=Math.max(2.1,speed*(1-Math.min(.28,sum('slow'))*dt*.08));
+   if(has('anchor'))speed=Math.max(2.1,speed-(speed-(4.2+level*.12))*Math.min(.35,sum('anchor'))*dt*.04);
+   if(has('moneyAnchor'))speed=Math.min(speed,4.2+max('moneyAnchor'));
+   if(has('turbo'))score+=.018*sum('passiveScore')*dt;
+   if(has('passiveScore'))score+=.01*sum('passiveScore')*dt;
+   const gravBoost=sum('gravity');if(gravBoost)player.vy+=.40*(1-Math.min(.65,gravBoost))*.01*dt;
+   if(has('edge')&&(player.y<25||player.y+player.h>H-25)){player.vy=-3;player.y=Math.max(26,Math.min(H-player.h-26,player.y));}
+   if(has('speedCut')&&coins>coinsBefore)speed*=Math.max(.75,1-sum('speedCut'));
+   if(has('profitFuel')&&coins>coinsBefore)speed*=Math.max(.72,1-sum('fuel'));
+   if(has('coinBonus')&&coins>coinsBefore)giveCoins(sum('coinBonus'),'BONUS');
+   if(has('scorePickup')&&coins>coinsBefore)score+=sum('scorePickup');
+   if(has('coinScore')&&coins>coinsBefore)score+=sum('coinScore');
+   if(has('mintScore')&&coins>coinsBefore)score+=level*sum('mintScore');
+   if(has('scoreMult')&&score>scoreBefore)score+=(score-scoreBefore)*(max('scoreMult')-1);
+   if(has('combo')&&coins>coinsBefore)combo=Math.min(10,combo+Math.floor(sum('combo')));
+   if(has('comboCash')&&coins>coinsBefore)giveCoins(combo*sum('comboCash'),'COMBO');
+   if(has('pulse')&&coins>coinsBefore)score+=sum('pulse');
+   if(has('rackBonus')&&passedRacks>passedBefore)score+=(passedRacks-passedBefore)*sum('rackBonus');
+   if(has('rackCash')&&passedRacks>passedBefore)giveCoins((passedRacks-passedBefore)*2,'RACK');
+   if(has('doubleRackCash')&&passedRacks>passedBefore)giveCoins((passedRacks-passedBefore)*3,'RACK');
+   if(has('levelCash')&&level>levelBefore)giveCoins(level*sum('levelCash'),'LEVEL');
+   if(has('ascension')&&level>levelBefore)giveCoins(level*sum('ascension'),'ASCENSION');
+   if(has('ascendant')&&level>levelBefore)giveCoins(level*sum('ascendant'),'ASCENSION');
+   if(has('rackJackpot')&&passedRacks>passedBefore&&Math.random()<sum('rackJackpot'))giveCoins(15,'JACKPOT');
+   if(has('rackCoinChance')&&passedRacks>passedBefore&&Math.random()<sum('rackCoinChance'))giveCoins(2,'RACK');
+   if(has('bankshot')&&passedRacks>passedBefore)giveCoins(1,'BANKSHOT');
+   if(has('vaultStreak')&&passedRacks>passedBefore&&passedRacks%5===0)giveCoins(10,'STREAK');
+   if(has('emperor')&&passedRacks>passedBefore&&passedRacks%10===0)giveCoins(20,'EMPEROR');
+   if(has('sovereign')&&passedRacks>passedBefore&&passedRacks%25===0)giveCoins(40,'SOVEREIGN');
+   if(has('dynasty')&&passedRacks>passedBefore&&passedRacks%50===0)giveCoins(80,'DYNASTY');
+   if(has('apocalypse')&&Math.floor(score/1000)>lastScoreMilestone){lastScoreMilestone=Math.floor(score/1000);giveCoins(sum('apocalypse'),'APOCALYPSE');}
+   if(has('absolute')&&Math.floor(score/500)>lastScoreMilestone){lastScoreMilestone=Math.floor(score/500);giveCoins(8,'ABSOLUTE');}
+   if(has('titan')&&Math.floor(score/500)>lastScoreMilestone){lastScoreMilestone=Math.floor(score/500);score+=sum('titan');}
+   if(has('cashTitan')&&Math.floor(score/500)>lastScoreMilestone){lastScoreMilestone=Math.floor(score/500);score+=250;}
+   if(has('supernova')&&coins>0&&Math.floor(coins/20)>Math.floor(coinsBefore/20))score+=sum('supernova');
+   if(has('bonanza')&&Math.floor(coins/100)>Math.floor(coinsBefore/100))score+=sum('bonanza');
+   if(has('omega')&&Math.floor(coins/100)>Math.floor(coinsBefore/100))giveCoins(20,'OMEGA');
+   if(has('bankroll')&&Math.floor(score/100)>Math.floor(scoreBefore/100))giveCoins(sum('bankroll'),'BANKROLL');
+   if(has('scoreKey')&&Math.floor(score/50)>Math.floor(scoreBefore/50))giveCoins(1,'KEY');
+   if(has('wave')&&Math.floor(score/25)>Math.floor(scoreBefore/25))giveCoins(sum('wave'),'WAVE');
+   if(has('finalJackpot')&&Math.random()<max('finalJackpot')*dt)giveCoins(50,'FINAL JACKPOT');
+   if(has('payday')||has('paydayDouble')||has('prism')||has('interest')||has('profitEngine')||has('doublePassive')){
+     paydayClock+=dt;
+     if(paydayClock>600){paydayClock=0;let base=has('prism')?level*max('prism'):5;if(has('interest'))base+=combo*2;if(has('profitEngine'))base+=3;giveCoins(base,'PAYDAY');}
+   }
+   if(has('passiveCoins')||has('doubleEngine')||has('doublePassive')){
+     passiveCoinClock+=dt;
+     if(passiveCoinClock>90){passiveCoinClock=0;giveCoins(1,'PASSIVE');}
+   }
+   if(has('moneySingularity')&&Math.random()<max('moneySingularity')*.02*dt)runMoneyMult=2;
+   if(runMoneyMult>1)runMoneyMult=Math.max(1,runMoneyMult-dt*.0008);
+   if(has('goldenMoment')&&Math.random()<max('goldenMoment')*.02*dt)runMoneyMult=2;
+   if(has('crown')&&combo>=10)nextCoinDouble=Math.max(nextCoinDouble,1);
+   if(has('doubleShield')&&has('shield'))nextCoinDouble=Math.max(nextCoinDouble,1);
+   if(has('dividend')&&coins>coinsBefore)giveCoins(Math.max(1,coins-coinsBefore),'DIVIDEND');
+   if(has('clone')&&coins>coinsBefore&&Math.random()<sum('clone'))giveCoins(1,'CLONE');
+   if(has('mirror')&&coins>coinsBefore&&Math.random()<sum('mirror'))giveCoins(1,'MIRROR');
+   if(has('echo')&&coins>coinsBefore&&Math.random()<sum('echo'))giveCoins(1,'ECHO');
+   if(has('doubleDividend')&&coins>coinsBefore)giveCoins(1,'DIVIDEND');
+   if(has('blastCoins')&&coins>coinsBefore)giveCoins(sum('blastCoins'),'BLAST');
+   if(has('bloom')&&coins>coinsBefore&&Math.random()<.35){for(let i=0;i<sum('bloom')+(has('doubleBloom')?sum('doubleBloom'):0);i++)if(Math.random()<.4)giveCoins(1,'BLOOM');}
+   if(has('coinEngine')&&coins>coinsBefore)score+=sum('coinEngine')*100;
+   if(has('fusion')&&coins>coinsBefore)score+=combo*sum('fusion');
+   if(has('fusionCoins')&&coins>coinsBefore)giveCoins(level*sum('fusionCoins'),'FUSION');
+   if(has('moneyFusion')&&coins>coinsBefore&&Math.random()<sum('moneyFusion'))giveCoins(Math.max(1,Math.floor(score/100)),'FUSION');
+   if(has('reflex')&&nearMiss>0)streakBonus=Math.min(.8,streakBonus+sum('reflex')*.001);
+   if(has('lock')&&coins>coinsBefore)streakBonus=Math.min(.75,streakBonus+sum('lock'));
+   if(has('cashback')&&score>scoreBefore&&Math.random()<sum('cashback'))giveCoins(1,'CASHBACK');
+   if(has('treasureCore')&&coins>coinsBefore)giveCoins(sum('treasureCore'),'SPECIAL');
+   if(has('goldScore')&&coins>coinsBefore)score+=Math.max(1,Math.floor((coins-coinsBefore)*sum('goldScore')));
+   if(has('legend')&&combo>=10&&coins>coinsBefore)giveCoins(sum('legend'),'LEGEND');
+   if(has('cashEngine')&&coins>coinsBefore)score+=sum('cashEngine');
+   if(has('mintArmor')&&coins>coinsBefore){} // hitbox modifier is applied by playerBox
+   if(has('guardian')&&coins>coinsBefore)edgeSaved=true;
+   if(has('override')&&coins>coinsBefore)edgeSaved=true;
+   if(has('doubleOverride')&&coins>coinsBefore){edgeSaved=true;giveCoins(1,'OVERRIDE');}
+   if(has('moneyCrown')&&combo>=10&&coins>coinsBefore)giveCoins(1,'CROWN');
+   if(has('catalyst')&&coins>coinsBefore)score+=combo*2;
+   if(has('treasureCore')&&pickups.some(c=>c.type==='boost'))giveCoins(1,'SPECIAL');
+   if(has('doubleTreasure')&&pickups.some(c=>c.type==='boost'))giveCoins(1,'SPECIAL');
+   if(has('profitMirror')&&Math.floor(score/100)>Math.floor(scoreBefore/100))giveCoins(1,'MIRROR');
+   if(has('finality')&&Math.floor(score/100)>Math.floor(scoreBefore/100))giveCoins(Math.floor(score/100)*sum('finality')/100,'FINALITY');
+   if(has('overdrive'))score+=score*sum('overdrive')*dt;
+   if(has('eternal'))runMoneyMult=Math.min(3,runMoneyMult+sum('eternal')*dt*.01);
+   if(has('doubleEternity'))runMoneyMult=Math.min(4,runMoneyMult+sum('doubleEternity')*dt*.01);
+   if(has('doubleEternal2'))runMoneyMult=Math.min(4,runMoneyMult+sum('doubleEternal2')*dt*.02);
+   if(has('apogee')&&level>=10)runMoneyMult=Math.max(runMoneyMult,max('apogee'));
+   if(has('moneyGodmode')&&Math.random()<sum('moneyGodmode')*.01*dt)runMoneyMult=2;
+   if(has('oblivion')&&Math.random()<sum('oblivion')*.01*dt)runMoneyMult=2;
+   if(has('absolute')&&level>lastLevel){lastLevel=level;giveCoins(5,'LEVEL');}
+   if(has('ascendant')&&level>lastLevel){lastLevel=level;giveCoins(level*sum('ascendant'),'ASCENSION');}
+   if(has('vaultBlessing')&&score===0&&coins===coinsBefore){giveCoins(10,'BLESSING');}
+   if(has('doubleVault')&&passedRacks>passedBefore)giveCoins(2,'RACK');
+   updateHUD();
+ };
+ function render(){
+   const grid=$('powerupGrid');if(!grid)return;
+   grid.innerHTML=powers.map(p=>{
+     const on=equipped.includes(p.id);
+     return '<div class="power-card '+(on?'equipped':'')+'"><h3>'+p.index+'. '+p.name+'</h3><p>'+p.desc+'</p><div class="power-meta"><span>'+p.tag+'</span><span>'+p.id.toUpperCase()+'</span></div><button class="btn '+(on?'primary':'')+'" data-power="'+p.id+'">'+(on?'EQUIPPED — TOGGLE OFF':'EQUIP')+'</button></div>';
+   }).join('');
+   $('powerupsCount').textContent=equipped.length+' / '+MAX_EQUIPPED+' EQUIPPED';
+   document.querySelectorAll('#powerupGrid [data-power]').forEach(b=>b.addEventListener('click',()=>{
+     const id=b.dataset.power,i=equipped.indexOf(id);
+     if(i>=0)equipped.splice(i,1);
+     else if(equipped.length<MAX_EQUIPPED)equipped.push(id);
+     else{toast('MAX 7 POWER-UPS EQUIPPED');return;}
+     save();render();chips();
+   }));
+ }
+ function chips(){
+   const el=$('gamePowerups');if(el)el.innerHTML=equipped.map(id=>{const p=powers.find(x=>x.id===id);return '<span class="power-chip active">'+p.name+'</span>';}).join('');
+   const c=$('powerupsCount');if(c)c.textContent=equipped.length+' / '+MAX_EQUIPPED+' EQUIPPED';
+ }
+ function menu(){const wrap=$('resumeRunWrap');if(wrap)wrap.style.display=localStorage.getItem('sr_run')?'block':'none';}
+ function saveRun(){if(typeof running!=='undefined'&&running&&!gameOver){try{localStorage.setItem('sr_run',JSON.stringify({score,combo,speed,level,spawnTimer,coinTimer,passedRacks,coinStreak,playerY:player.y,playerVy:player.vy,playerRot:player.rot,obstacles,pickups,coins,runMoneyMult,nextCoinDouble,edgeSaved,phoenixUsed}))}catch(e){}}}
+ window.saveRun=saveRun;
+ function resume(){let r=null;try{r=JSON.parse(localStorage.getItem('sr_run')||'null')}catch(e){}if(!r)return;localStorage.removeItem('sr_run');if(typeof startGame==='function')startGame();score=r.score||0;combo=r.combo||1;speed=r.speed||4.2;level=r.level||1;spawnTimer=r.spawnTimer||0;coinTimer=r.coinTimer||0;passedRacks=r.passedRacks||0;coinStreak=r.coinStreak||0;coins=Number.isFinite(r.coins)?r.coins:coins;player.y=r.playerY??H/2;player.vy=r.playerVy||0;player.rot=r.playerRot||0;obstacles=Array.isArray(r.obstacles)?r.obstacles:[];pickups=Array.isArray(r.pickups)?r.pickups:[];runMoneyMult=r.runMoneyMult||1;nextCoinDouble=r.nextCoinDouble||0;edgeSaved=!!r.edgeSaved;phoenixUsed=!!r.phoenixUsed;updateMenu();chips();toast('SAVED RUN RESTORED');}
+ const powerBtn=document.createElement('button');powerBtn.className='btn';powerBtn.id='powerupsBtn';powerBtn.textContent='⚡ POWER-UP VAULT (0/7)';const settings=$('settingsBtn');if(settings&&settings.parentNode)settings.parentNode.insertBefore(powerBtn,settings);
+ powerBtn.addEventListener('click',()=>{render();showScreen('powerupsScreen')});
+ $('powerupsBack').addEventListener('click',()=>{menu();updateMenu();showScreen('menuScreen')});
+ const hud=$('gameScreen')?.querySelector('.hud');if(hud){const bar=document.createElement('div');bar.className='powerup-bar';bar.id='gamePowerups';hud.parentNode.insertBefore(bar,hud.nextSibling)}
+ const menuEl=$('menuScreen');if(menuEl){const wrap=document.createElement('div');wrap.id='resumeRunWrap';wrap.innerHTML='<p class="resume-note">A SAVED RUN IS READY — YOUR PROGRESS WAS PRESERVED.</p><button class="btn primary back" id="resumeBtn">▶ CONTINUE SAVED RUN</button>';const stats=menuEl.querySelector('.menu-stats');if(stats)menuEl.querySelector('.menu').insertBefore(wrap,stats);}
+ $('resumeBtn')?.addEventListener('click',resume);
+ $('quitBtn')?.addEventListener('click',saveRun);
+ $('menuBtn')?.addEventListener('click',()=>setTimeout(saveRun,0));
+ window.addEventListener('pagehide',saveRun);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveRun()});
+ render();chips();menu();
+})();
+</script>
+<script id="bossUpgradeJS">
+(function(){
+ const $=id=>document.getElementById(id);
+ const BOSS_BASE=60, BOSS_STEP=25, MAX_HEARTS=3;
+ let bossActive=false,bossDefeated=false,bossHp=0,bossMaxHp=0,bossTimer=0,bossShots=[],bossFlash=0,bossName='',bossReward=0;
+ let bossLives=MAX_HEARTS,bossHits=0,bossY=H/2-105,bossTargetY=H/2-105,bossPattern=0,bossPhase=0,bossHitCooldown=0,bossShake=0;
+ let completedWorlds=[];
+ try{completedWorlds=JSON.parse(localStorage.getItem('sr_completedWorlds')||'[]')}catch(e){completedWorlds=[]}
+
+ // 200 deterministic, unique bosses: 20 identities x 10 unique variants.
+ const bossHeads=['CASH','VAULT','GOLD','DOLLAR','MINT','DIAMOND','BANK','PROFIT','COIN','STACK','MONEY','NEON','ROYAL','TREASURE','PLATINUM','EMERALD','FORTUNE','CREDIT','JACKPOT','MEGA'];
+ const bossBodies=['REAPER','TITAN','DRAGON','GOLEM','PHANTOM','COLOSSUS','WRAITH','BEAST','OVERLORD','CYCLONE'];
+ const bossColors=['#39ff88','#ffcf45','#8ed8ff','#f3a55b','#5dffb0','#d8eaff','#ff9a5c','#d7a0ff','#6dffdc','#ff7ac8','#b8ff57','#63a4ff','#ffdf7a','#9dffea','#e7c7ff','#74ffc0','#ffc56e','#a8c8ff','#ffe86b','#ff8c8c'];
+ const patterns=['CHASE','CROSSHAIR','WALL','BURST','SWEEP','MIRROR','SPIRAL','RUSH','ORBIT','CHAOS'];
+ function bossIdentity(id){
+   const n=Math.max(1,Math.min(200,id));
+   const head=bossHeads[Math.floor((n-1)/10)];
+   const body=bossBodies[(n-1)%10];
+   const variant=((n-1)%10)+1;
+   return {name:`THE ${head} ${body} ${String(variant).padStart(2,'0')}`,color:bossColors[(n-1)%bossColors.length],pattern:patterns[(n-1)%patterns.length]};
+ }
+ function worldThreshold(){return BOSS_BASE+(Math.max(1,selectedWorld)-1)*BOSS_STEP}
+ function worldBossHp(){const w=Math.max(1,selectedWorld);return Math.round(1200*Math.pow(1.028,w-1)+w*65)}
+ function worldBossReward(){const w=Math.max(1,selectedWorld);return Math.round(2800*Math.pow(1.045,w-1))}
+ function completed(id){return completedWorlds.includes(id)}
+ function saveCompleted(){localStorage.setItem('sr_completedWorlds',JSON.stringify(completedWorlds))}
+ function updateHearts(){
+   const el=$('playerHearts');if(!el)return;
+   el.innerHTML=[0,1,2].map(i=>`<span class="${i<bossLives?'':'heart-lost'}">♥</span>`).join(' ');
+ }
+ function updateBossHud(){
+   const hud=$('bossHud');if(!hud)return;
+   $('bossFill').style.width=Math.max(0,bossHp/bossMaxHp*100)+'%';
+   $('bossMoney').textContent='$'+Math.ceil(bossHp).toLocaleString()+' / $'+bossMaxHp.toLocaleString();
+   updateHearts();
+ }
+ function showBoss(){
+   const hud=$('bossHud');if(!hud)return;
+   hud.classList.add('show');
+   const shot=$('moneyShotBtn');if(shot)shot.classList.add('show');
+   const info=bossIdentity(selectedWorld);bossName=info.name;
+   $('bossName').textContent=bossName+' // WORLD '+selectedWorld;
+   $('bossSub').textContent=`${info.pattern} • SHOOT MONEY AT THE BOSS • X / BUTTON FIRES CASH`;
+   updateBossHud();
+ }
+ function hideBoss(){const h=$('bossHud');if(h)h.classList.remove('show'); const heartBox=document.querySelector('.hearts-box'); if(heartBox) heartBox.classList.remove('show'); const shot=$('moneyShotBtn');if(shot)shot.classList.remove('show');}
+ function resetBossFight(){
+   bossLives=MAX_HEARTS;bossHits=0;bossTimer=0;bossShots=[];bossFlash=0;bossPhase=0;bossHitCooldown=0;bossShake=0;
+   bossHp=worldBossHp();bossMaxHp=bossHp;
+   const info=bossIdentity(selectedWorld);bossName=info.name;bossPattern=patterns.indexOf(info.pattern);
+   bossY=H/2-105;bossTargetY=bossY;
+   updateBossHud();
+ }
+ function beginBoss(){
+   if(bossActive||bossDefeated)return;
+   bossActive=true;bossDefeated=false;resetBossFight();
+   obstacles=[];pickups=[];toast('⚠ BOSS INCOMING — '+bossName);beep(180,.25,'sawtooth');showBoss();
+ }
+ function restartBoss(){
+   if(!bossActive)return;
+   resetBossFight();
+   player.y=H/2;player.vy=0;player.rot=0;
+   toast('💔 3 LIVES LOST — BOSS FIGHT RESTARTED');beep(120,.22,'sawtooth');
+   showBoss();
+ }
+ function loseBossHeart(){
+   if(bossHitCooldown>0)return;
+   bossLives--;bossHitCooldown=70;bossShake=.45;bossFlash=.25;burst(player.x+player.w/2,player.y+player.h/2,20);updateHearts();beep(140,.16,'sawtooth');
+   if(bossLives<=0)restartBoss();
+ }
+ function shootMoney(){
+   if(!bossActive||gameOver)return;
+   if(bossTimer<5)return;
+   bossTimer-=5;
+   const w=Math.max(1,selectedWorld),dmg=Math.round((32+combo*4)*Math.min(4,1+w*.012));
+   bossShots.push({kind:'player',x:player.x+player.w-4,y:player.y+player.h/2,vx:12+Math.min(7,w*.025),vy:(Math.random()-.5)*1.5,dmg,rot:0,life:2.2});
+   burst(player.x+player.w,player.y+player.h/2,5);beep(760,.045,'triangle');
+ }
+ function finishBoss(){
+   bossActive=false;bossDefeated=true;hideBoss();
+   if(!completed(selectedWorld)){completedWorlds.push(selectedWorld);saveCompleted()}
+   const paid=typeof giveCoins==='function'?giveCoins(bossReward,'BOSS'):0;
+   save();updateMenu();
+   toast('🏆 '+bossName+' DEFEATED! +'+bossReward.toLocaleString()+' COINS');beep(1040,.12,'triangle');setTimeout(()=>beep(1320,.18,'triangle'),120);
+   const note=$('deathText');if(note)note.textContent='WORLD '+selectedWorld+' COMPLETE — '+bossName+' DEFEATED';
+   const reward=$('rewardText');if(reward){reward.classList.add('boss-reward');reward.textContent='BOSS REWARD: +'+bossReward.toLocaleString()+' COINS'+(paid>bossReward?' • POWER-UPS BOOSTED IT':'')}
+   if(selectedWorld<200&&!ownedWorlds.includes(selectedWorld+1)){ownedWorlds.push(selectedWorld+1);save()}
+   gameOver=true;running=false;music.pause();$('deathModal').classList.add('show');
+ }
+ function spawnBossAttack(){
+   const w=Math.max(1,selectedWorld), info=bossIdentity(selectedWorld), n=1+Math.min(8,Math.floor(w/20));
+   bossPhase++;
+   if(info.pattern==='CHASE'){
+     for(let i=0;i<n;i++){const y=player.y+player.h/2+(i-(n-1)/2)*34;bossShots.push({kind:'boss',x:W-230,y,vx:-(5+w*.035),vy:(player.y+player.h/2-y)*.012,rot:0,life:3})}
+   }else if(info.pattern==='CROSSHAIR'){
+     const ys=[90,210,330,450,560];const shift=bossPhase%5;
+     for(let i=0;i<Math.min(ys.length,2+Math.floor(w/35));i++){const y=ys[(i+shift)%ys.length];bossShots.push({kind:'boss',x:W-240,y,vx:-(5+w*.03),vy:0,rot:0,life:3})}
+   }else if(info.pattern==='WALL'){
+     const gap=Math.max(105,245-w*.45),center=100+Math.random()*(H-200);
+     for(let y=55;y<H-35;y+=42){if(Math.abs(y-center)>gap/2)bossShots.push({kind:'boss',x:W-240,y,vx:-(5+w*.028),vy:0,rot:0,life:3})}
+   }else if(info.pattern==='BURST'){
+     const count=Math.min(14,4+Math.floor(w/15));for(let i=0;i<count;i++){const a=(Math.PI*2*i/count)+bossPhase*.18;bossShots.push({kind:'boss',x:W-225,y:bossY+105,vx:Math.cos(a)*(4.2+w*.018),vy:Math.sin(a)*(4.2+w*.018),rot:a,life:3})}
+   }else if(info.pattern==='SWEEP'){
+     const y=80+((bossPhase*77)%(H-160));for(let i=0;i<n+2;i++)bossShots.push({kind:'boss',x:W-240-i*45,y:y+i*30,vx:-(5+w*.035),vy:.7,rot:0,life:3})
+   }else if(info.pattern==='MIRROR'){
+     const py=player.y+player.h/2;[py, H-py].forEach(y=>bossShots.push({kind:'boss',x:W-240,y,vx:-(5+w*.04),vy:(py-y)*.006,rot:0,life:3}))
+   }else if(info.pattern==='SPIRAL'){
+     const count=Math.min(16,5+Math.floor(w/14));for(let i=0;i<count;i++){const a=i*.48+bossPhase*.32;bossShots.push({kind:'boss',x:W-225,y:bossY+105,vx:-4.5*Math.cos(a),vy:4.5*Math.sin(a),rot:a,life:3})}
+   }else if(info.pattern==='RUSH'){
+     for(let i=0;i<Math.min(6,2+Math.floor(w/30));i++)bossShots.push({kind:'boss',x:W-240,y:70+i*90,vx:-(8+w*.05),vy:(player.y+player.h/2-(70+i*90))*.01,rot:0,life:2.3})
+   }else if(info.pattern==='ORBIT'){
+     const count=Math.min(12,4+Math.floor(w/18));for(let i=0;i<count;i++){const a=i*Math.PI*2/count;bossShots.push({kind:'boss',x:W-225,y:bossY+105,vx:-2.5+Math.cos(a)*(3+w*.01),vy:Math.sin(a)*(3+w*.01),rot:a,life:3})}
+   }else{
+     const count=Math.min(18,5+Math.floor(w/12));for(let i=0;i<count;i++){const y=45+Math.random()*(H-90);bossShots.push({kind:'boss',x:W-240,y,vx:-(4.5+w*.045),vy:(Math.random()-.5)*(2+w*.012),rot:0,life:2.6})}
+   }
+ }
+ function updateBoss(dt){
+   const w=Math.max(1,selectedWorld), info=bossIdentity(selectedWorld);
+   bossTimer+=dt;bossPhase+=dt*.01;bossFlash=Math.max(0,bossFlash-dt);bossHitCooldown=Math.max(0,bossHitCooldown-dt);bossShake=Math.max(0,bossShake-dt*.025);
+   // Boss moves more aggressively in later worlds.
+   bossTargetY=player.y+player.h/2-105;
+   bossY += (bossTargetY-bossY)*Math.min(1,(.008+w*.00008)*dt);
+   bossY=Math.max(20,Math.min(H-230,bossY));
+   bossShots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.rot+=.15*dt;s.life-=dt/60});
+   for(let i=bossShots.length-1;i>=0;i--){const s=bossShots[i];if(s.x<-80||s.x>W+100||s.y<-80||s.y>H+80||s.life<=0){bossShots.splice(i,1);continue}}
+   const bx=W-205,by=bossY,bw=150,bh=210;
+   for(let i=bossShots.length-1;i>=0;i--){const s=bossShots[i];
+     if(s.kind==='player'&&s.x>bx&&s.x<bx+bw&&s.y>by&&s.y<by+bh){bossHp=Math.max(0,bossHp-s.dmg);bossFlash=.18;bossShots.splice(i,1);burst(s.x,s.y,12);beep(500,.04);updateBossHud();if(bossHp<=0){finishBoss();return}}
+     else if(s.kind==='boss'&&s.x<player.x+player.w&&s.x+30>player.x+8&&s.y>player.y+7&&s.y<player.y+player.h-7){bossShots.splice(i,1);loseBossHeart()}
+   }
+   const interval=Math.max(22,78-w*.22);
+   if(bossTimer%interval < dt)spawnBossAttack();
+   if(w%10===0 && bossTimer%Math.max(80,170-w*.35)<dt)spawnBossAttack();
+ }
+ const originalStart=window.startGame;
+ window.startGame=function(){bossActive=false;bossDefeated=false;bossHp=0;bossMaxHp=0;bossTimer=0;bossShots=[];bossLives=MAX_HEARTS;hideBoss();updateHearts();originalStart();if(passedRacks>=worldThreshold())beginBoss()};
+ const originalUpdate=window.update;
+ window.update=function(dt){
+   if(bossActive){updateBoss(dt);score+=.02*dt;updateHUD();return}
+   originalUpdate(dt);
+   if(!bossDefeated&&passedRacks>=worldThreshold())beginBoss();
+ };
+ const originalDraw=window.draw;
+ window.draw=function(t){
+   originalDraw(t);if(!bossActive)return;
+   ctx.save();
+   const info=bossIdentity(selectedWorld),bx=W-205,by=bossY,bw=150,bh=210,col=info.color;
+   if(bossShake>0)ctx.translate((Math.random()-.5)*6,(Math.random()-.5)*6);
+   ctx.globalAlpha=.22;ctx.fillStyle=col;ctx.fillRect(bx-25,by-25,bw+50,bh+50);ctx.globalAlpha=1;
+   ctx.shadowColor=col;ctx.shadowBlur=28;ctx.strokeStyle=col;ctx.lineWidth=5;ctx.strokeRect(bx,by,bw,bh);ctx.shadowBlur=0;
+   ctx.fillStyle='#06110b';ctx.fillRect(bx+8,by+8,bw-16,bh-16);ctx.fillStyle=col;ctx.font='900 46px Arial';ctx.textAlign='center';ctx.fillText('$',bx+bw/2,by+90);ctx.font='900 9px Arial';ctx.fillText(bossName,bx+bw/2,by+126);ctx.font='900 10px Arial';ctx.fillText(info.pattern,bx+bw/2,by+146);
+   if(bossFlash>0){ctx.globalAlpha=Math.min(1,bossFlash*7);ctx.fillStyle='#fff6a8';ctx.fillRect(bx,by,bw,bh);ctx.globalAlpha=1}
+   bossShots.forEach(s=>{ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.rot);ctx.fillStyle=s.kind==='player'?'#d8ffe8':'#ffe16b';ctx.strokeStyle='#214d32';ctx.lineWidth=2;ctx.fillRect(-15,-9,30,18);ctx.strokeRect(-15,-9,30,18);ctx.fillStyle='#173d27';ctx.font='bold 12px Arial';ctx.textAlign='center';ctx.fillText('$',0,4);ctx.restore()});
+   ctx.restore();
+ };
+ const shot=$('moneyShotBtn');if(shot)shot.addEventListener('click',shootMoney);
+ document.addEventListener('keydown',e=>{if(e.code==='KeyX'){e.preventDefault();shootMoney()}});
+ function saveBossRun(){if(!running||gameOver)return;try{const r=JSON.parse(localStorage.getItem('sr_run')||'{}');r.bossActive=bossActive;r.bossHp=bossHp;r.bossMaxHp=bossMaxHp;r.bossTimer=bossTimer;r.bossLives=bossLives;r.bossName=bossName;localStorage.setItem('sr_run',JSON.stringify(r))}catch(e){}}
+ window.addEventListener('pagehide',saveBossRun);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveBossRun()});
+ let savedBossResume=null;
+ const resumeBtn=$('resumeBtn');
+ if(resumeBtn){
+   resumeBtn.addEventListener('click',()=>{try{const r=JSON.parse(localStorage.getItem('sr_run')||'null');if(r&&r.bossActive)savedBossResume=r}catch(e){savedBossResume=null}},true);
+   resumeBtn.addEventListener('click',()=>setTimeout(()=>{try{const r=savedBossResume;if(r&&r.bossActive){bossActive=true;bossDefeated=false;bossMaxHp=r.bossMaxHp||worldBossHp();bossHp=r.bossHp||bossMaxHp;bossTimer=r.bossTimer||0;bossLives=Math.max(1,Math.min(3,r.bossLives||3));bossName=r.bossName||bossIdentity(selectedWorld).name;bossReward=worldBossReward();showBoss();savedBossResume=null}}catch(e){}},30));
+ }
+ const oldRender=window.renderWorlds;if(oldRender)window.renderWorlds=function(){oldRender();document.querySelectorAll('[data-world]').forEach(btn=>{const id=Number(btn.dataset.world);const card=btn.closest('.item');if(card&&completed(id)){const small=card.querySelector('small');if(small)small.textContent+=' • BOSS CLEARED • REPLAYABLE';btn.textContent='REPLAY'}})};
+ window.SRBosses={completedWorlds,worldThreshold,worldBossHp,worldBossReward,completed,bossIdentity};
+ updateHearts();
+})();
+</script>
+<script id="finalGameSystems">
+(function(){
+  const q=id=>document.getElementById(id), LS=localStorage;
+  const get=(k,d)=>{try{return JSON.parse(LS.getItem(k)??JSON.stringify(d))}catch(e){return d}};
+  const put=(k,v)=>{try{LS.setItem(k,JSON.stringify(v))}catch(e){}};
+  let stats=get('sr_stats',{runs:0,coinsCollected:0,powerups:0,bosses:0,racks:0,comboBest:1});
+  let achievements=get('sr_achievements',{});
+  let daily=get('sr_daily',null);
+  let tutorialSeen=LS.getItem('sr_tutorial')==='1';
+  const today=new Date().toISOString().slice(0,10);
+  const challenges=[
+    {id:'coins',name:'STACK BUILDER',desc:'Collect 100 coins',goal:100,reward:500,metric:()=>stats.coinsCollected},
+    {id:'racks',name:'RACK RUNNER',desc:'Pass 1,000 racks',goal:1000,reward:750,metric:()=>stats.racks},
+    {id:'combo',name:'COMBO MACHINE',desc:'Reach a x25 combo in a run',goal:25,reward:900,metric:()=>stats.comboBest},
+    {id:'score',name:'STACKS SPRINT',desc:'Reach 5,000 Stacks Score in a run',goal:5000,reward:1000,metric:()=>stats.runScore||0}
+  ];
+  if(!daily||daily.date!==today){const c=challenges[Math.floor(Math.random()*challenges.length)];daily={date:today,id:c.id,claimed:false,startMetric:c.metric(),progress:0};put('sr_daily',daily)}
+  function sync(){put('sr_stats',stats);put('sr_achievements',achievements);put('sr_daily',daily)}
+  function achievement(id,title,desc){if(achievements[id])return;achievements[id]=Date.now();sync();toast('🏆 ACHIEVEMENT: '+title);beep(980,.16,'triangle')}
+  const defs=[
+    ['firstRun','FIRST FLIGHT','Finish your first run',()=>stats.runs>=1],
+    ['coins100','CENTURY STACK','Collect 100 coins total',()=>stats.coinsCollected>=100],
+    ['coins1000','STACK LORD','Collect 1,000 coins total',()=>stats.coinsCollected>=1000],
+    ['racks1000','RACK RAT','Pass 1,000 racks total',()=>stats.racks>=1000],
+    ['combo25','HOT STACK','Reach x25 combo',()=>stats.comboBest>=25],
+    ['boss1','BOSS MONEY','Defeat your first boss',()=>stats.bosses>=1],
+    ['world10','TEN DOWN','Complete 10 worlds',()=>typeof completedWorlds!=='undefined'&&completedWorlds.length>=10],
+    ['world50','HALFWAY','Complete 50 worlds',()=>typeof completedWorlds!=='undefined'&&completedWorlds.length>=50],
+    ['world100','CENTURY WORLD','Complete 100 worlds',()=>typeof completedWorlds!=='undefined'&&completedWorlds.length>=100],
+    ['allWorlds','VAULT COMPLETE','Complete all 200 worlds',()=>typeof completedWorlds!=='undefined'&&completedWorlds.length>=200],
+    ['powerups100','POWER STACK','Collect 100 power-ups',()=>stats.powerups>=100]
+  ];
+  function checkAchievements(){defs.forEach(a=>{try{if(a[3]())achievement(a[0],a[1],a[2])}catch(e){}})}
+  function challenge(){return challenges.find(c=>c.id===daily.id)||challenges[0]}
+  function updateDaily(){const c=challenge();daily.progress=Math.max(0,c.metric()-daily.startMetric); if(c.id==='score') daily.progress=Math.max(daily.progress,stats.runScore||0); put('sr_daily',daily); return c}
+  function showOverlay(title,body){const wrap=document.createElement('div');wrap.className='modal show';wrap.id='tempOverlay';wrap.innerHTML='<div class="panel modal-card overlay-card"><h2>'+title+'</h2>'+body+'<button class="btn back" id="tempClose">← BACK</button></div>';document.body.appendChild(wrap);q('tempClose').onclick=()=>wrap.remove();return wrap}
+  function addMenuButtons(){const grid=document.querySelector('#menuScreen .btn-grid');if(!grid)return;[['profileBtn','👤 PROFILE'],['dailyBtn','📅 DAILY CHALLENGE'],['achievementsBtn','🏆 ACHIEVEMENTS']].forEach(([id,label])=>{if(!q(id)){const b=document.createElement('button');b.className='btn';b.id=id;b.textContent=label;grid.appendChild(b)}});q('profileBtn').onclick=showProfile;q('dailyBtn').onclick=showDaily;q('achievementsBtn').onclick=showAchievements}
+  function showProfile(){
+    const worlds=typeof completedWorlds!=='undefined'?completedWorlds.length:0;
+    showOverlay('👤 PLAYER PROFILE',
+      '<div class="stat-table"><span>WORLD</span><b>'+(typeof selectedWorld!=='undefined'?selectedWorld:1)+'</b></div>'+
+      '<div class="stat-table"><span>STACKS SCORE</span><b>'+Math.floor(typeof highScore!=='undefined'?highScore:0).toLocaleString()+'</b></div>'+
+      '<div class="stat-table"><span>TOTAL COINS</span><b>'+Math.floor(typeof coins!=='undefined'?coins:0).toLocaleString()+'</b></div>'+
+      '<div class="stat-table"><span>BOSSES DEFEATED</span><b>'+stats.bosses+'</b></div>'+
+      '<div class="stat-table"><span>POWER-UPS COLLECTED</span><b>'+stats.powerups+'</b></div>'+
+      '<div class="stat-table"><span>WORLDS COMPLETED</span><b>'+worlds+' / 200</b></div>'+
+      '<div class="stat-table"><span>BEST COMBO</span><b>x'+stats.comboBest+'</b></div>'+
+      '<div class="stat-table"><span>TOTAL RACKS PASSED</span><b>'+stats.racks.toLocaleString()+'</b></div>'+
+      '<div class="utility-grid"><button class="btn" id="exportSave">⬇ EXPORT SAVE</button><button class="btn" id="importSave">⬆ IMPORT SAVE</button><button class="btn" id="resetTutorial">↻ SHOW TUTORIAL</button></div>'+
+      '<div class="tip-chip">Your save stays in this browser unless you export it.</div>');
+    q('exportSave').onclick=()=>{const data={version:1,highScore,coins,owned,selected,ownedWorlds,selectedWorld,stats,achievements,daily};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));a.download='stacks-racks-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('SAVE EXPORTED')};
+    q('importSave').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=()=>{const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.version!==1)throw 0;[['sr_high',d.highScore],['sr_coins',d.coins],['sr_owned',d.owned],['sr_selected',d.selected],['sr_worlds',d.ownedWorlds],['sr_world',d.selectedWorld],['sr_stats',d.stats],['sr_achievements',d.achievements],['sr_daily',d.daily]].forEach(([k,v])=>LS.setItem(k,JSON.stringify(v)));toast('SAVE IMPORTED — RELOAD THE GAME');}catch(e){toast('INVALID SAVE FILE')}};r.readAsText(f)};i.click()};
+    q('resetTutorial').onclick=()=>{LS.removeItem('sr_tutorial');showTutorial(true)};
+  }
+  function showDaily(){const c=updateDaily();const pct=Math.min(100,(daily.progress/c.goal)*100);showOverlay('📅 DAILY CHALLENGE','<div class="daily-box"><h3>'+c.name+'</h3><p>'+c.desc+'</p><p><b>'+Math.min(c.goal,daily.progress).toLocaleString()+' / '+c.goal.toLocaleString()+'</b></p><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><p class="daily-reward">REWARD: +'+c.reward.toLocaleString()+' COINS</p><p>'+(daily.claimed?'✅ CLAIMED':'Complete the objective to claim your reward.')+'</p></div>');}
+  function claimDaily(){const c=updateDaily();if(!daily.claimed&&daily.progress>=c.goal){daily.claimed=true;coins+=c.reward;save();sync();toast('📅 DAILY COMPLETE +'+c.reward+' COINS')}}
+  function showAchievements(){let body=defs.map(a=>'<div class="achievement '+(achievements[a[0]]?'':'locked')+'"><span><b>'+a[1]+'</b><br><small>'+a[2]+'</small></span><span>'+(achievements[a[0]]?'✓':'🔒')+'</span></div>').join('');showOverlay('🏆 ACHIEVEMENTS',body)}
+  function showTutorial(force){
+    if(tutorialSeen&&!force)return;
+    const wasRunning=!!running;if(wasRunning){paused=true;if(typeof syncPauseUI==='function')syncPauseUI();}
+    const wrap=showOverlay('HOW TO PLAY','<p>💵 <b>FLY THE CASH:</b> TAP / CLICK / SPACE / ↑ to flap.</p><p>🧱 <b>BEAT THE RACKS:</b> pass through the opening. Every rack adds score; streaks add bonus score.</p><p>🪙 <b>COLLECT MONEY:</b> coins add to your permanent stack and score. Special cash pickups can trigger bigger rewards.</p><p>⚡ <b>POWER-UPS:</b> equip up to 7 in POWER-UP VAULT. They change coins, score, movement, safety, and boss damage.</p><p>👑 <b>BOSS FIGHTS:</b> reach the world target, then use SHOOT MONEY or X. Dodge attacks and protect your 3 lives.</p><p>🏆 <b>REWARDS:</b> bosses unlock worlds and award coins; achievements track milestones.</p><p>⏸️ <b>PAUSE:</b> use the PAUSE button, P, or Esc. You can open settings without losing your run.</p><button class="btn primary" id="tutorialDone">GOT IT — LET’S RUN</button>');
+    q('tutorialDone').onclick=()=>{tutorialSeen=true;LS.setItem('sr_tutorial','1');wrap.remove();if(wasRunning){paused=false;if(typeof syncPauseUI==='function')syncPauseUI();}}
+  }
+  function addProgressHud(){const g=q('gameScreen');if(!g)return;const hud=q('finalProgressHud');if(hud&&!g.contains(hud))g.appendChild(hud)}
+  function updateProgress(){const hud=q('finalProgressHud');if(!hud||typeof score==='undefined')return;const world=typeof selectedWorld!=='undefined'?selectedWorld:1;const bossAt=typeof worldThreshold==='function'?worldThreshold(world):500000;const current=typeof passedRacks!=='undefined'?passedRacks:0;const pct=Math.min(100,(current/bossAt)*100);q('progressLabel').textContent='WORLD '+world+' • RACKS '+Math.floor(current).toLocaleString()+' / '+bossAt.toLocaleString()+' TO BOSS';q('progressFill').style.width=pct+'%';hud.classList.add('show')}
+  function flashHit(){const f=q('flashHit');if(!f)return;f.classList.remove('on');void f.offsetWidth;f.classList.add('on')}
+  function popScore(txt,x,y){const e=document.createElement('div');e.className='score-pop';e.textContent=txt;e.style.left=(x||50)+'px';e.style.top=(y||50)+'px';document.body.appendChild(e);setTimeout(()=>e.remove(),800)}
+  const oldStart=window.startGame, oldEnd=window.endGame, oldUpdate=window.update;
+  if(oldStart)window.startGame=function(){stats.runs++;stats.runScore=0;stats.startCoins=stats.coinsCollected;sync();oldStart();addProgressHud();if(!tutorialSeen)setTimeout(()=>showTutorial(false),120)};
+  if(oldEnd)window.endGame=function(){stats.runScore=Math.floor(score||0);stats.comboBest=Math.max(stats.comboBest,combo||1);daily=updateDaily();claimDaily();sync();checkAchievements();oldEnd();};
+  if(oldUpdate)window.update=function(dt){const before=Math.floor(score||0);const oldR=passedRacks||0;oldUpdate(dt);stats.runScore=Math.max(stats.runScore||0,Math.floor(score||0));if((passedRacks||0)>oldR){stats.racks+=(passedRacks-oldR);stats.racks=Math.max(0,stats.racks);daily=updateDaily();}if((score||0)>before+5)popScore('+'+Math.floor((score||0)-before),window.innerWidth*.42,window.innerHeight*.35);if((stats.runScore||0)%1000<20)checkAchievements();updateProgress();};
+  const oldFinish=window.SRBosses&&window.SRBosses.completed;
+  // Boss completion is detected by the game's completed-world list changing.
+  let lastCompleted=typeof completedWorlds!=='undefined'?completedWorlds.length:0;
+  setInterval(()=>{try{if(typeof completedWorlds!=='undefined'&&completedWorlds.length>lastCompleted){stats.bosses+=completedWorlds.length-lastCompleted;lastCompleted=completedWorlds.length;sync();checkAchievements();beep(1040,.22,'triangle')}}catch(e){}},500);
+  document.addEventListener('keydown',e=>{if(e.code==='KeyP'&&typeof running!=='undefined'&&running&&!gameOver){paused=!paused;if(!paused&&q('musicToggle')?.checked)music.play().catch(()=>{});toast(paused?'PAUSED':'RESUMED')}});
+  window.addEventListener('beforeunload',()=>{try{save();sync()}catch(e){}});
+  addMenuButtons();addProgressHud();checkAchievements();
+  // Improve main-menu exit: save first, then attempt close; browsers may block scripted tab closing.
+  const mq=q('mainQuitBtn');if(mq)mq.onclick=()=>{try{save();sync();if(typeof saveRun==='function')saveRun();music.pause();}catch(e){} try{window.close()}catch(e){} setTimeout(()=>{if(!document.hidden)toast('PROGRESS SAVED — YOU CAN CLOSE THIS TAB')},250)};
+  // The original Play/Retry handlers captured the pre-wrapper startGame function.
+  // Rebind them so boss/stats/tutorial wrappers run for normal starts too.
+  const playBtnFinal=document.getElementById('playBtn');
+  const retryBtnFinal=document.getElementById('retryBtn');
+  if(playBtnFinal)playBtnFinal.onclick=()=>window.startGame();
+  if(retryBtnFinal)retryBtnFinal.onclick=()=>window.startGame();
+
+  // Keep money shot hidden outside bosses even if another script changes it.
+  const shot=q('moneyShotBtn');if(shot){const obs=new MutationObserver(()=>{if(typeof bossActive!=='undefined'&&!bossActive)shot.classList.remove('show')});obs.observe(shot,{attributes:true,attributeFilter:['class']})}
+  // Make SFX preference persistent.
+  ['musicToggle','sfxToggle','shakeToggle','gridToggle'].forEach(id=>{const el=q(id);if(!el)return;const key='sr_'+id;el.checked=LS.getItem(key)!=='0';el.addEventListener('change',()=>LS.setItem(key,el.checked?'1':'0'))});
+  showTutorial(false);
+  // Expose for manual testing.
+  window.SRFinal={stats,achievements,daily,showProfile,showDaily,showAchievements,showTutorial};
+})();
+</script>
+<script id="gamePolishEnhancements">
+(function(){
+  const $=id=>document.getElementById(id);
+  const pauseOverlay=$('pauseOverlay'), pauseBtn=$('pauseBtn');
+  window.syncPauseUI=function(){
+    if(pauseBtn)pauseBtn.textContent=paused?'▶ RESUME':'Ⅱ PAUSE';
+    if(pauseOverlay)pauseOverlay.classList.toggle('show',!!paused&&!!running&&!gameOver);
+  };
+  function setPaused(next){
+    if(!running||gameOver)return;
+    paused=!!next;
+    if(paused)music.pause();
+    else if($('musicToggle')?.checked)music.play().catch(()=>{});
+    syncPauseUI();
+  }
+  if(pauseBtn){
+    pauseBtn.onclick=()=>setPaused(!paused);
+  }
+  $('resumeGameBtn')?.addEventListener('click',()=>setPaused(false));
+  $('pauseSettingsBtn')?.addEventListener('click',()=>{
+    if(!running)return;
+    window._returnToGameAfterSettings=true;
+    showScreen('settingsScreen');
+  });
+  $('pauseMenuBtn')?.addEventListener('click',()=>{
+    try{if(typeof window.saveRun==='function')window.saveRun();save()}catch(e){}
+    paused=false;running=false;music.pause();syncPauseUI();updateMenu();showScreen('menuScreen');
+  });
+
+  // Keyboard pause uses the same UI as the button.
+  document.addEventListener('keydown',e=>{
+    if(e.code==='KeyP' && running && !gameOver){e.preventDefault();setPaused(!paused)}
+    if(e.code==='Escape' && running && !gameOver){e.preventDefault();setPaused(!paused)}
+  },true);
+
+  // Restore the visible pause state whenever a run starts/ends.
+  const oldStart=window.startGame;
+  if(oldStart)window.startGame=function(){oldStart();syncPauseUI()};
+  const oldEnd=window.endGame;
+  if(oldEnd)window.endGame=function(){oldEnd();syncPauseUI()};
+
+  // First-run tutorial now blocks gameplay until dismissed.
+  if(window.SRFinal && window.SRFinal.showTutorial){
+    const originalTutorial=window.SRFinal.showTutorial;
+    window.SRFinal.showTutorial=function(force){return originalTutorial(force)};
+  }
+
+  // Boss entrance presentation: visible transition + music ducking, without requiring a new audio asset.
+  let bossWasVisible=false, bossBannerTimer=0;
+  const bossHud=$('bossHud');
+  const baseMusicVolume=()=>Math.max(0,Math.min(1,Number(localStorage.getItem('sr_musicVol')??music.volume)));
+  setInterval(()=>{
+    const visible=!!bossHud?.classList.contains('show');
+    if(visible&&!bossWasVisible){
+      bossWasVisible=true;
+      music.volume=baseMusicVolume()*.22;
+      const banner=document.createElement('div');
+      banner.id='bossIncomingBanner';
+      banner.innerHTML='<div class="boss-banner-card"><div class="boss-banner-kicker">WORLD '+(typeof selectedWorld==='number'?selectedWorld:1)+'</div><div class="boss-banner-title">⚠ BOSS INCOMING ⚠</div><div class="boss-banner-sub">SHOOT MONEY • 3 LIVES • SURVIVE THE ATTACK</div></div>';
+      document.body.appendChild(banner);
+      beep(180,.16,'sawtooth');setTimeout(()=>beep(120,.18,'sawtooth'),170);
+      setTimeout(()=>banner.remove(),1800);
+    }
+    if(!visible&&bossWasVisible){
+      bossWasVisible=false;
+      music.volume=baseMusicVolume();
+    }
+  },120);
+
+  // Keep audio settings authoritative after returning from menus/settings.
+  const syncAudio=()=>{
+    const mv=Math.max(0,Math.min(1,Number(localStorage.getItem('sr_musicVol')??.32)));
+    if(!bossWasVisible)music.volume=mv;
+    sfxVolume=Math.max(0,Math.min(1,Number(localStorage.getItem('sr_sfxVol')??1)));
+  };
+  window.addEventListener('pageshow',syncAudio);
+  syncAudio();
+  syncPauseUI();
+})();
+</script><style id="finalPassStyles">
+.boss-banner-card{animation:bossIn .35s ease-out;border:2px solid #57ff88;background:rgba(0,12,7,.94);padding:24px 34px;text-align:center;box-shadow:0 0 40px rgba(30,255,120,.35)}
+.boss-banner-title{font-size:clamp(26px,6vw,54px);font-weight:1000;color:#57ff88;letter-spacing:5px}.boss-banner-kicker{color:#ffdc69;font-size:12px;letter-spacing:4px}.boss-banner-sub{color:#b9ffd2;font-size:12px;letter-spacing:2px;margin-top:10px}@keyframes bossIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+#bossIncomingBanner{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);pointer-events:none}
+.final-power-help{margin:8px 0 14px;padding:10px;border:1px solid rgba(57,255,136,.22);background:rgba(0,20,12,.45);color:#8fc9a6;font-size:11px;line-height:1.45}.final-power-help b{color:#caffdd}.power-chip{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.run-status{font-size:10px;color:#70b88e;letter-spacing:1px;margin-top:8px}.event-pip{position:fixed;right:14px;bottom:14px;z-index:70;padding:8px 10px;border:1px solid rgba(87,255,136,.25);background:rgba(0,12,7,.85);color:#baffd0;font-size:10px;pointer-events:none;opacity:0;transform:translateY(8px);transition:.18s}.event-pip.show{opacity:1;transform:none}
+@media(max-width:700px){.controls .btn{min-height:44px}.hud{grid-template-columns:repeat(2,1fr)!important}.gamePowerups{max-height:44px;overflow:hidden}.power-chip{font-size:8px;padding:4px 6px}.boss-banner-card{width:88vw;padding:20px 14px}}
+</style>
+<script id="finalPassJS">
+(function(){
+ const $=id=>document.getElementById(id);
+ // 1, 9: Pause/settings state is always synchronized and survives screen transitions.
+ function sync(){if(typeof syncPauseUI==='function')syncPauseUI();}
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&typeof running!=='undefined'&&running&&!gameOver&&!paused){paused=true;sync();}});
+ // 3: make every existing beep obey one authoritative SFX setting/volume.
+ const oldSetVolume=window.setSFXVolume;
+ function audioSync(){if(typeof sfxVolume!=='undefined')sfxVolume=Math.max(0,Math.min(1,Number(localStorage.getItem('sr_sfxVol')??1)));if(typeof music!=='undefined'){const mv=Math.max(0,Math.min(1,Number(localStorage.getItem('sr_musicVol')??.32)));if(!document.getElementById('bossHud')?.classList.contains('show'))music.volume=mv;}}
+ ['musicVolume','sfxVolume'].forEach(id=>$(id)?.addEventListener('input',audioSync)); audioSync();
+ // 6: give equipped powers a compact explanation while playing.
+ const hud=$('gameScreen')?.querySelector('.hud');
+ if(hud&&!$('powerHelpStrip')){const d=document.createElement('div');d.id='powerHelpStrip';d.className='final-power-help';d.style.display='none';hud.parentNode.insertBefore(d,hud.nextSibling);}
+ function powerHelp(){const d=$('powerHelpStrip');if(!d||!window.SRPowerups)return;const eq=window.SRPowerups.equipped||[];if(!eq.length){d.style.display='none';return}const items=eq.map(id=>window.SRPowerups.powers.find(p=>p.id===id)).filter(Boolean);d.innerHTML='<b>ACTIVE POWER-UPS</b> — '+items.slice(0,7).map(p=>p.name+': '+p.desc).join(' • ');d.style.display='block';}
+ setInterval(()=>{if($('gameScreen')?.classList.contains('active'))powerHelp();else if($('powerHelpStrip'))$('powerHelpStrip').style.display='none';},700);
+ // 7: readable difficulty curve indicator.
+ if($('gameScreen')&&!$('difficultyHint')){const d=document.createElement('div');d.id='difficultyHint';d.className='run-status';$('gameScreen').appendChild(d);}
+ setInterval(()=>{const d=$('difficultyHint');if(!d||typeof running==='undefined'||!running){if(d)d.textContent='';return}const lvl=typeof level==='number'?level:1;const world=typeof selectedWorld==='number'?selectedWorld:1;d.textContent='DIFFICULTY • WORLD '+world+' • LEVEL '+lvl+' • SPEED '+(typeof speed==='number'?speed.toFixed(1):'4.2');},500);
+ // 8: explicit reward feedback when a world becomes completed/unlocked.
+ let seenCompleted=typeof completedWorlds!=='undefined'?completedWorlds.length:0;
+ setInterval(()=>{try{if(typeof completedWorlds!=='undefined'&&completedWorlds.length>seenCompleted){const delta=completedWorlds.length-seenCompleted;seenCompleted=completedWorlds.length;toast('🌎 WORLD COMPLETE • '+delta+' NEW WORLD REWARD'+(delta>1?'S':''));beep(1180,.1,'triangle');setTimeout(()=>beep(1480,.16,'triangle'),100);}}catch(e){}},500);
+ // 10: extra event feedback where the underlying game state changes.
+ let lastCoin=typeof coins==='number'?coins:0,lastCombo=typeof combo==='number'?combo:1,lastLevel=typeof level==='number'?level:1;
+ setInterval(()=>{try{if(typeof coins==='number'&&coins>lastCoin){lastCoin=coins;}if(typeof combo==='number'&&combo>lastCombo){beep(860,.08,'triangle');lastCombo=combo;}if(typeof level==='number'&&level>lastLevel){beep(720,.1,'sine');toast('⬆ LEVEL '+level);lastLevel=level;}}catch(e){}},350);
+ // 11: continue button only appears when a valid saved run exists.
+ const resume=$('resumeBtn');
+ function syncResume(){if(!resume)return;let valid=false;try{const r=JSON.parse(localStorage.getItem('sr_run')||'null');valid=!!r&&(Number.isFinite(r.score)||Array.isArray(r.obstacles)||r.bossActive===true)}catch(e){}resume.style.display=valid?'block':'none';const wrap=$('resumeRunWrap');if(wrap)wrap.style.display=valid?'block':'none';}
+ syncResume();window.addEventListener('pageshow',syncResume);setInterval(syncResume,1000);
+ // 12: mobile-safe control sizing and no accidental page gestures during play.
+ document.addEventListener('touchmove',e=>{if($('gameScreen')?.classList.contains('active'))e.preventDefault()},{passive:false});
+ // 5: tutorial button can be reopened from the existing profile screen; make it more explicit.
+ const tut=$('resetTutorial'); if(tut)tut.textContent='↻ RUN FULL TUTORIAL';
+ // 4: boss transition remains visible and now also flashes the game frame.
+ let lastBoss=false;setInterval(()=>{const on=!!$('bossHud')?.classList.contains('show');if(on&&!lastBoss){const frame=document.querySelector('.game-frame');frame?.classList.add('boss-alert');setTimeout(()=>frame?.classList.remove('boss-alert'),900)}lastBoss=on;},120);
+})();
+</script>
+<style>.boss-alert{animation:bossPulse .3s 3 alternate}@keyframes bossPulse{from{box-shadow:0 0 0 rgba(87,255,136,0)}to{box-shadow:0 0 35px rgba(87,255,136,.45)}}</style>
+</body>
+</html>
